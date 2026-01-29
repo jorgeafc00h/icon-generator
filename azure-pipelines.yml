@@ -1,0 +1,433 @@
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+  paths:
+    exclude:
+      - README.md
+      - docs/**
+
+pr:
+  branches:
+    include:
+      - main
+      - develop
+
+variables:
+  - group: icon-generator-variables # Create this in Azure DevOps Library
+  - name: azureSubscription
+    value: 'icon-generator-service-connection' # Create service connection in Azure DevOps
+  - name: resourceGroupName
+    value: 'rg-icon-generator'
+  - name: location
+    value: 'eastus'
+  - name: vmImageName
+    value: 'ubuntu-latest'
+  - name: nodeVersion
+    value: '18.x'
+
+stages:
+  # ============================================
+  # Stage 1: Infrastructure Deployment
+  # ============================================
+  - stage: Infrastructure
+    displayName: 'Deploy Infrastructure'
+    jobs:
+      - job: DeployBicep
+        displayName: 'Deploy Bicep Templates'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Create Resource Group'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az group create \
+                  --name $(resourceGroupName) \
+                  --location $(location) \
+                  --tags Environment=$(Build.SourceBranchName) Project=IconGenerator
+
+          - task: AzureCLI@2
+            displayName: 'Validate Bicep Templates'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az deployment group validate \
+                  --resource-group $(resourceGroupName) \
+                  --template-file ./infrastructure/main.bicep \
+                  --parameters ./infrastructure/parameters.$(Build.SourceBranchName).json
+
+          - task: AzureResourceManagerTemplateDeployment@3
+            displayName: 'Deploy Infrastructure'
+            inputs:
+              deploymentScope: 'Resource Group'
+              azureResourceManagerConnection: $(azureSubscription)
+              subscriptionId: $(subscriptionId)
+              action: 'Create Or Update Resource Group'
+              resourceGroupName: $(resourceGroupName)
+              location: $(location)
+              templateLocation: 'Linked artifact'
+              csmFile: './infrastructure/main.bicep'
+              csmParametersFile: './infrastructure/parameters.$(Build.SourceBranchName).json'
+              deploymentMode: 'Incremental'
+              deploymentName: 'infrastructure-$(Build.BuildId)'
+              deploymentOutputs: 'infraOutputs'
+
+          - task: PowerShell@2
+            displayName: 'Parse Infrastructure Outputs'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $outputs = '$(infraOutputs)' | ConvertFrom-Json
+                foreach ($output in $outputs.PSObject.Properties) {
+                  Write-Host "##vso[task.setvariable variable=$($output.Name);isOutput=true]$($output.Value.value)"
+                }
+            name: InfraOutputs
+
+  # ============================================
+  # Stage 2: Build Backend (Azure Functions)
+  # ============================================
+  - stage: BuildBackend
+    displayName: 'Build Backend'
+    dependsOn: Infrastructure
+    jobs:
+      - job: BuildFunctions
+        displayName: 'Build Azure Functions'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - script: |
+              cd api
+              npm ci
+              npm run build
+              npm run test:ci
+            displayName: 'Install Dependencies & Build'
+
+          - task: CopyFiles@2
+            displayName: 'Copy Function App Files'
+            inputs:
+              SourceFolder: '$(System.DefaultWorkingDirectory)/api'
+              Contents: |
+                **/*
+                !node_modules/**
+                !src/**
+                !**/*.ts
+                !tsconfig.json
+              TargetFolder: '$(Build.ArtifactStagingDirectory)/functions'
+
+          - task: ArchiveFiles@2
+            displayName: 'Archive Functions'
+            inputs:
+              rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/functions'
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/functions.zip'
+              replaceExistingArchive: true
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Function Artifact'
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/functions.zip'
+              ArtifactName: 'functions'
+              publishLocation: 'Container'
+
+  # ============================================
+  # Stage 3: Build Frontend (React)
+  # ============================================
+  - stage: BuildFrontend
+    displayName: 'Build Frontend'
+    dependsOn: Infrastructure
+    jobs:
+      - job: BuildReact
+        displayName: 'Build React App'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: NodeTool@0
+            displayName: 'Install Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - script: |
+              cd frontend
+              npm ci
+              npm run build
+            displayName: 'Install Dependencies & Build'
+            env:
+              VITE_API_BASE_URL: $(VITE_API_BASE_URL)
+              VITE_STRIPE_PUBLISHABLE_KEY: $(VITE_STRIPE_PUBLISHABLE_KEY)
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Frontend Artifact'
+            inputs:
+              PathtoPublish: '$(System.DefaultWorkingDirectory)/frontend/dist'
+              ArtifactName: 'frontend'
+              publishLocation: 'Container'
+
+  # ============================================
+  # Stage 4: Deploy Backend
+  # ============================================
+  - stage: DeployBackend
+    displayName: 'Deploy Backend'
+    dependsOn:
+      - BuildBackend
+      - Infrastructure
+    jobs:
+      - deployment: DeployFunctions
+        displayName: 'Deploy Azure Functions'
+        pool:
+          vmImage: $(vmImageName)
+        environment: '$(Build.SourceBranchName)'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadBuildArtifacts@0
+                  displayName: 'Download Function Artifact'
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'functions'
+                    downloadPath: '$(System.ArtifactsDirectory)'
+
+                - task: AzureFunctionApp@1
+                  displayName: 'Deploy to Azure Functions'
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    appType: 'functionAppLinux'
+                    appName: '$(functionAppName)' # From infrastructure outputs
+                    package: '$(System.ArtifactsDirectory)/functions/functions.zip'
+                    runtimeStack: 'NODE|18'
+                    deploymentMethod: 'zipDeploy'
+
+                - task: AzureAppServiceSettings@1
+                  displayName: 'Configure Function App Settings'
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    appName: '$(functionAppName)'
+                    resourceGroupName: $(resourceGroupName)
+                    appSettings: |
+                      [
+                        {
+                          "name": "AZURE_OPENAI_ENDPOINT",
+                          "value": "$(AZURE_OPENAI_ENDPOINT)",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "AZURE_OPENAI_API_KEY",
+                          "value": "$(AZURE_OPENAI_API_KEY)",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "DALLE3_DEPLOYMENT_NAME",
+                          "value": "dalle3-icon-generator",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "GPT4O_MINI_DEPLOYMENT_NAME",
+                          "value": "gpt-4o-mini-prompts",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "AZURE_STORAGE_CONNECTION_STRING",
+                          "value": "$(storageConnectionString)",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "STORAGE_CONTAINER_NAME",
+                          "value": "generated-icons",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "COSMOS_ENDPOINT",
+                          "value": "$(cosmosEndpoint)",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "COSMOS_KEY",
+                          "value": "$(cosmosKey)",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "COSMOS_DATABASE",
+                          "value": "IconGeneratorDB",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "STRIPE_SECRET_KEY",
+                          "value": "$(STRIPE_SECRET_KEY)",
+                          "slotSetting": false
+                        },
+                        {
+                          "name": "ALLOWED_ORIGINS",
+                          "value": "$(staticWebAppUrl)",
+                          "slotSetting": false
+                        }
+                      ]
+
+  # ============================================
+  # Stage 5: Deploy Frontend
+  # ============================================
+  - stage: DeployFrontend
+    displayName: 'Deploy Frontend'
+    dependsOn:
+      - BuildFrontend
+      - Infrastructure
+    jobs:
+      - deployment: DeployStaticWebApp
+        displayName: 'Deploy to Static Web App'
+        pool:
+          vmImage: $(vmImageName)
+        environment: '$(Build.SourceBranchName)'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - task: DownloadBuildArtifacts@0
+                  displayName: 'Download Frontend Artifact'
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'frontend'
+                    downloadPath: '$(System.ArtifactsDirectory)'
+
+                - task: AzureStaticWebApp@0
+                  displayName: 'Deploy Static Web App'
+                  inputs:
+                    app_location: '$(System.ArtifactsDirectory)/frontend'
+                    azure_static_web_apps_api_token: '$(staticWebAppToken)'
+                    skip_app_build: true
+                    skip_api_build: true
+
+  # ============================================
+  # Stage 6: Post-Deployment Configuration
+  # ============================================
+  - stage: PostDeployment
+    displayName: 'Post-Deployment Configuration'
+    dependsOn:
+      - DeployBackend
+      - DeployFrontend
+    jobs:
+      - job: ConfigureServices
+        displayName: 'Configure Services'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Initialize Cosmos DB'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Create database and containers
+                az cosmosdb sql database create \
+                  --account-name $(cosmosAccountName) \
+                  --resource-group $(resourceGroupName) \
+                  --name IconGeneratorDB \
+                  --throughput 400
+
+                # Create Users container
+                az cosmosdb sql container create \
+                  --account-name $(cosmosAccountName) \
+                  --resource-group $(resourceGroupName) \
+                  --database-name IconGeneratorDB \
+                  --name Users \
+                  --partition-key-path "/id" \
+                  --throughput 400
+
+                # Create Icons container
+                az cosmosdb sql container create \
+                  --account-name $(cosmosAccountName) \
+                  --resource-group $(resourceGroupName) \
+                  --database-name IconGeneratorDB \
+                  --name Icons \
+                  --partition-key-path "/userId" \
+                  --throughput 400
+
+          - task: AzureCLI@2
+            displayName: 'Configure Blob Storage'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Create containers
+                az storage container create \
+                  --name generated-icons \
+                  --account-name $(storageAccountName) \
+                  --public-access blob
+
+                az storage container create \
+                  --name app-resources \
+                  --account-name $(storageAccountName) \
+                  --public-access blob
+
+          - task: AzureCLI@2
+            displayName: 'Deploy AI Models'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                echo "Note: AI model deployments must be done through Azure AI Foundry portal"
+                echo "1. Navigate to https://ai.azure.com"
+                echo "2. Deploy DALL-E 3 with name: dalle3-icon-generator"
+                echo "3. Deploy GPT-4o-mini with name: gpt-4o-mini-prompts"
+
+  # ============================================
+  # Stage 7: Smoke Tests
+  # ============================================
+  - stage: SmokeTests
+    displayName: 'Smoke Tests'
+    dependsOn:
+      - DeployBackend
+      - DeployFrontend
+    jobs:
+      - job: TestEndpoints
+        displayName: 'Test API Endpoints'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: PowerShell@2
+            displayName: 'Health Check'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $functionUrl = "$(functionAppUrl)"
+                $staticWebAppUrl = "$(staticWebAppUrl)"
+
+                # Test Function App
+                try {
+                  $response = Invoke-WebRequest -Uri "$functionUrl/api/health" -Method Get -TimeoutSec 30
+                  if ($response.StatusCode -eq 200) {
+                    Write-Host "✓ Function App is healthy"
+                  }
+                } catch {
+                  Write-Error "✗ Function App health check failed: $_"
+                  exit 1
+                }
+
+                # Test Static Web App
+                try {
+                  $response = Invoke-WebRequest -Uri $staticWebAppUrl -Method Get -TimeoutSec 30
+                  if ($response.StatusCode -eq 200) {
+                    Write-Host "✓ Static Web App is accessible"
+                  }
+                } catch {
+                  Write-Error "✗ Static Web App check failed: $_"
+                  exit 1
+                }

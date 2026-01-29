@@ -1,0 +1,21 @@
+# Bicep ignore file
+
+# Scripts
+*.sh
+
+# Documentation
+*.md
+
+# Outputs
+outputs.*.json
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

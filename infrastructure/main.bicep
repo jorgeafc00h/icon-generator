@@ -18,6 +18,17 @@ param location string = resourceGroup().location
 @description('Base name for all resources')
 param baseName string = 'icongen'
 
+@description('Database type to use')
+@allowed([
+  'cosmosdb'
+  'sql'
+])
+param databaseType string = 'cosmosdb'
+
+@description('SQL Admin password (required if using Azure SQL)')
+@secure()
+param sqlAdminPassword string = ''
+
 @description('Tags to apply to all resources')
 param tags object = {
   Environment: environment
@@ -35,6 +46,8 @@ var functionAppName = 'func-${resourceSuffix}'
 var appServicePlanName = 'asp-${resourceSuffix}'
 var staticWebAppName = 'swa-${resourceSuffix}'
 var cosmosAccountName = 'cosmos-${resourceSuffix}'
+var sqlServerName = 'sql-${resourceSuffix}'
+var sqlDatabaseName = 'IconGeneratorDB'
 var openAIName = 'openai-${resourceSuffix}'
 var appInsightsName = 'ai-${resourceSuffix}'
 var logAnalyticsName = 'log-${resourceSuffix}'
@@ -93,17 +106,39 @@ module storage './modules/storage-account.bicep' = {
 }
 
 // ==============================================
-// Module: Cosmos DB
+// Module: Cosmos DB (Conditional)
 // ==============================================
 
-module cosmosDb './modules/cosmos-db.bicep' = {
+module cosmosDb './modules/cosmos-db.bicep' = if (databaseType == 'cosmosdb') {
   name: 'cosmos-deployment'
   params: {
     name: cosmosAccountName
     location: location
     tags: tags
-    enableFreeTier: environment == 'dev'
+    // Free tier: 1000 RU/s + 25GB storage free forever (one per subscription)
+    enableFreeTier: true
+    // Serverless: pay per request (good for dev/staging)
     enableServerless: environment != 'prod'
+  }
+}
+
+// ==============================================
+// Module: Azure SQL (Conditional)
+// ==============================================
+
+module azureSQL './modules/azure-sql.bicep' = if (databaseType == 'sql') {
+  name: 'sql-deployment'
+  params: {
+    serverName: sqlServerName
+    databaseName: sqlDatabaseName
+    location: location
+    tags: tags
+    administratorLogin: 'sqladmin'
+    administratorPassword: sqlAdminPassword
+    // Basic: $5/month (2GB storage)
+    // S0: $15/month (250GB storage, 10 DTUs)
+    sku: environment == 'prod' ? 'S1' : 'Basic'
+    enablePublicAccess: true
   }
 }
 
@@ -172,10 +207,10 @@ module functionApp './modules/function-app.bicep' = {
     appInsightsConnectionString: appInsights.outputs.connectionString
     runtime: 'node'
     runtimeVersion: '18'
-    appSettings: [
+    appSettings: concat([
       {
-        name: 'COSMOS_ENDPOINT'
-        value: cosmosDb.outputs.endpoint
+        name: 'DATABASE_TYPE'
+        value: databaseType
       }
       {
         name: 'AZURE_OPENAI_ENDPOINT'
@@ -185,7 +220,25 @@ module functionApp './modules/function-app.bicep' = {
         name: 'STORAGE_CONTAINER_NAME'
         value: 'generated-icons'
       }
-    ]
+    ], databaseType == 'cosmosdb' ? [
+      {
+        name: 'COSMOS_ENDPOINT'
+        value: cosmosDb.outputs.endpoint
+      }
+    ] : [
+      {
+        name: 'SQL_CONNECTION_STRING'
+        value: azureSQL.outputs.connectionString
+      }
+      {
+        name: 'SQL_SERVER'
+        value: azureSQL.outputs.fullyQualifiedDomainName
+      }
+      {
+        name: 'SQL_DATABASE'
+        value: sqlDatabaseName
+      }
+    ])
   }
 }
 
@@ -216,10 +269,14 @@ output storageAccountName string = storage.outputs.storageAccountName
 output storageConnectionString string = storage.outputs.connectionString
 output storageBlobEndpoint string = storage.outputs.blobEndpoint
 
-// Cosmos DB outputs
-output cosmosAccountName string = cosmosDb.outputs.accountName
-output cosmosEndpoint string = cosmosDb.outputs.endpoint
-output cosmosKey string = cosmosDb.outputs.primaryKey
+// Database outputs (conditional)
+output databaseType string = databaseType
+output cosmosAccountName string = databaseType == 'cosmosdb' ? cosmosDb.outputs.accountName : ''
+output cosmosEndpoint string = databaseType == 'cosmosdb' ? cosmosDb.outputs.endpoint : ''
+output cosmosKey string = databaseType == 'cosmosdb' ? cosmosDb.outputs.primaryKey : ''
+output sqlServerName string = databaseType == 'sql' ? azureSQL.outputs.serverName : ''
+output sqlDatabaseName string = databaseType == 'sql' ? azureSQL.outputs.databaseName : ''
+output sqlConnectionString string = databaseType == 'sql' ? azureSQL.outputs.connectionString : ''
 
 // OpenAI outputs
 output openAIName string = openAI.outputs.name

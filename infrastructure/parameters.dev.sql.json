@@ -9,15 +9,20 @@
       "value": "icongen"
     },
     "databaseType": {
-      "value": "cosmosdb",
+      "value": "sql",
       "metadata": {
-        "description": "Using Cosmos DB Free Tier: 1000 RU/s + 25GB free forever"
+        "description": "Using Azure SQL Basic tier: ~$5/month"
       }
     },
     "sqlAdminPassword": {
-      "value": "",
+      "reference": {
+        "keyVault": {
+          "id": "/subscriptions/{subscription-id}/resourceGroups/{rg-name}/providers/Microsoft.KeyVault/vaults/{vault-name}"
+        },
+        "secretName": "sql-admin-password"
+      },
       "metadata": {
-        "description": "Not needed when using Cosmos DB"
+        "description": "SQL admin password from Key Vault or set directly"
       }
     },
     "tags": {

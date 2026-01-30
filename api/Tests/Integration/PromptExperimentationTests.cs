@@ -1,0 +1,358 @@
+namespace IconGenerator.Functions.Tests.Integration;
+
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Azure;
+using Azure.AI.OpenAI;
+using IconGenerator.Functions.Models;
+using IconGenerator.Functions.Services;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using IconGenerator.Functions.Options;
+
+/// <summary>
+/// Integration tests for experimenting with prompt engineering and image generation
+/// Run these tests to evaluate quality of generated icons with different prompts
+/// </summary>
+public class PromptExperimentationTests
+{
+    private readonly PromptEngineeringService _promptService;
+    private readonly AIService _aiService;
+    private readonly ILogger<PromptExperimentationTests> _logger;
+
+    public PromptExperimentationTests()
+    {
+        // Setup logging
+        var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddConsole();
+            builder.SetMinimumLevel(LogLevel.Information);
+        });
+
+        _logger = loggerFactory.CreateLogger<PromptExperimentationTests>();
+
+        // Setup services
+        _promptService = new PromptEngineeringService(
+            loggerFactory.CreateLogger<PromptEngineeringService>());
+
+        // Load configuration from environment or local.settings.json
+        var options = GetAzureOpenAIOptions();
+        _aiService = new AIService(
+            Options.Create(options),
+            _promptService,
+            loggerFactory.CreateLogger<AIService>());
+    }
+
+    /// <summary>
+    /// Test 1: Generate prompts for different styles and compare
+    /// </summary>
+    public async Task TestStyleVariations()
+    {
+        Console.WriteLine("\n=== TEST 1: Style Variations ===\n");
+
+        var styles = new[] { "3D", "minimal", "gradient", "glassmorphism", "clay", "pixel" };
+        var request = new IconGenerationRequest
+        {
+            Keywords = "fitness tracker",
+            Colors = new List<string> { "#FF6B6B", "#4ECDC4" },
+            Quality = "hd"
+        };
+
+        foreach (var style in styles)
+        {
+            request.Style = style;
+
+            Console.WriteLine($"\n--- Style: {style} ---");
+            var enhancedPrompt = await _aiService.EnhancePromptAsync(request);
+
+            Console.WriteLine($"Enhanced Prompt:\n{enhancedPrompt}\n");
+
+            var qualityScore = _promptService.AnalyzePromptQuality(enhancedPrompt);
+            Console.WriteLine(qualityScore.ToString());
+
+            // Optional: Generate actual image (costs money - uncomment to test)
+            // var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, request.Quality);
+            // Console.WriteLine($"Generated Image: {imageUrl}\n");
+
+            await Task.Delay(1000); // Rate limiting
+        }
+    }
+
+    /// <summary>
+    /// Test 2: Compare different color palettes
+    /// </summary>
+    public async Task TestColorPalettes()
+    {
+        Console.WriteLine("\n=== TEST 2: Color Palette Variations ===\n");
+
+        var palettes = new Dictionary<string, List<string>>
+        {
+            ["Tech Blue"] = new() { "#0066FF", "#00D4FF" },
+            ["Vibrant Purple"] = new() { "#6C5CE7", "#FD79A8" },
+            ["Organic Green"] = new() { "#00B894", "#55EFC4" },
+            ["Warm Sunset"] = new() { "#FF6B6B", "#FFBB5C" },
+            ["No Colors (AI Choice)"] = new()
+        };
+
+        var request = new IconGenerationRequest
+        {
+            Keywords = "music player",
+            Style = "gradient",
+            Quality = "standard"
+        };
+
+        foreach (var (paletteName, colors) in palettes)
+        {
+            request.Colors = colors;
+
+            Console.WriteLine($"\n--- Palette: {paletteName} ---");
+            var enhancedPrompt = await _aiService.EnhancePromptAsync(request);
+            Console.WriteLine($"Enhanced Prompt:\n{enhancedPrompt}\n");
+
+            await Task.Delay(1000);
+        }
+    }
+
+    /// <summary>
+    /// Test 3: A/B test variations of the same concept
+    /// </summary>
+    public async Task TestPromptVariations()
+    {
+        Console.WriteLine("\n=== TEST 3: Prompt Variation A/B Testing ===\n");
+
+        var request = new IconGenerationRequest
+        {
+            Keywords = "coffee shop",
+            Style = "3D",
+            Colors = new List<string> { "#6F4E37", "#F4E4C1" },
+            Quality = "hd"
+        };
+
+        var variations = _promptService.BuildVariationPrompts(request, 3);
+
+        for (int i = 0; i < variations.Count; i++)
+        {
+            Console.WriteLine($"\n--- Variation {i + 1} ---");
+            Console.WriteLine($"Prompt: {variations[i]}\n");
+
+            // You can enhance these further through GPT-4o-mini if desired
+            var qualityScore = _promptService.AnalyzePromptQuality(variations[i]);
+            Console.WriteLine(qualityScore.ToString());
+        }
+    }
+
+    /// <summary>
+    /// Test 4: Quality comparison - Standard vs HD
+    /// </summary>
+    public async Task TestQualityComparison()
+    {
+        Console.WriteLine("\n=== TEST 4: Quality Comparison (Standard vs HD) ===\n");
+
+        var request = new IconGenerationRequest
+        {
+            Keywords = "travel app",
+            Style = "minimal",
+            Colors = new List<string> { "#3B82F6", "#10B981" }
+        };
+
+        // Standard quality
+        request.Quality = "standard";
+        Console.WriteLine("\n--- Standard Quality ---");
+        var standardPrompt = await _aiService.EnhancePromptAsync(request);
+        Console.WriteLine($"Enhanced Prompt:\n{standardPrompt}\n");
+
+        // HD quality
+        request.Quality = "hd";
+        Console.WriteLine("\n--- HD Quality ---");
+        var hdPrompt = await _aiService.EnhancePromptAsync(request);
+        Console.WriteLine($"Enhanced Prompt:\n{hdPrompt}\n");
+    }
+
+    /// <summary>
+    /// Test 5: Batch generation for evaluation
+    /// </summary>
+    public async Task TestBatchGeneration()
+    {
+        Console.WriteLine("\n=== TEST 5: Batch Icon Generation ===\n");
+
+        var testCases = new[]
+        {
+            new { Keywords = "email", Style = "minimal", Colors = new[] { "#EA4335", "#FBBC04" } },
+            new { Keywords = "calendar", Style = "3D", Colors = new[] { "#4285F4", "#FFFFFF" } },
+            new { Keywords = "camera", Style = "gradient", Colors = new[] { "#833AB4", "#FD1D1D" } },
+            new { Keywords = "shopping", Style = "clay", Colors = new[] { "#FF6B6B", "#4ECDC4" } },
+            new { Keywords = "weather", Style = "glassmorphism", Colors = new[] { "#00D4FF", "#FFFFFF" } }
+        };
+
+        foreach (var testCase in testCases)
+        {
+            var request = new IconGenerationRequest
+            {
+                Keywords = testCase.Keywords,
+                Style = testCase.Style,
+                Colors = testCase.Colors.ToList(),
+                Quality = "standard"
+            };
+
+            Console.WriteLine($"\n--- {testCase.Keywords} ({testCase.Style}) ---");
+            var enhancedPrompt = await _aiService.EnhancePromptAsync(request);
+            Console.WriteLine($"Enhanced Prompt:\n{enhancedPrompt}\n");
+
+            var qualityScore = _promptService.AnalyzePromptQuality(enhancedPrompt);
+            Console.WriteLine(qualityScore.ToString());
+
+            await Task.Delay(1000);
+        }
+    }
+
+    /// <summary>
+    /// Test 6: Save prompts and results to file for analysis
+    /// </summary>
+    public async Task TestAndSaveResults()
+    {
+        Console.WriteLine("\n=== TEST 6: Generate and Save Results ===\n");
+
+        var outputDir = Path.Combine(Directory.GetCurrentDirectory(), "test-results");
+        Directory.CreateDirectory(outputDir);
+
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
+        var resultsFile = Path.Combine(outputDir, $"prompt-results-{timestamp}.md");
+
+        using var writer = new StreamWriter(resultsFile);
+        await writer.WriteLineAsync("# Prompt Engineering Test Results\n");
+        await writer.WriteLineAsync($"Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC\n");
+        await writer.WriteLineAsync("---\n");
+
+        var testCases = new[]
+        {
+            new IconGenerationRequest { Keywords = "fitness", Style = "3D", Colors = new() { "#FF6B6B", "#4ECDC4" } },
+            new IconGenerationRequest { Keywords = "meditation", Style = "minimal", Colors = new() { "#A8DADC", "#457B9D" } },
+            new IconGenerationRequest { Keywords = "food delivery", Style = "gradient", Colors = new() { "#F77F00", "#FCBF49" } }
+        };
+
+        foreach (var request in testCases)
+        {
+            Console.WriteLine($"Testing: {request.Keywords} ({request.Style})");
+
+            var enhancedPrompt = await _aiService.EnhancePromptAsync(request);
+            var qualityScore = _promptService.AnalyzePromptQuality(enhancedPrompt);
+
+            await writer.WriteLineAsync($"## {request.Keywords} - {request.Style}\n");
+            await writer.WriteLineAsync($"**Colors:** {string.Join(", ", request.Colors)}\n");
+            await writer.WriteLineAsync($"**Quality Score:** {qualityScore.OverallScore:F1}%\n");
+            await writer.WriteLineAsync("**Enhanced Prompt:**");
+            await writer.WriteLineAsync("```");
+            await writer.WriteLineAsync(enhancedPrompt);
+            await writer.WriteLineAsync("```\n");
+            await writer.WriteLineAsync($"**Quality Metrics:**");
+            await writer.WriteLineAsync(qualityScore.ToString());
+            await writer.WriteLineAsync("\n---\n");
+
+            await Task.Delay(1000);
+        }
+
+        Console.WriteLine($"\nResults saved to: {resultsFile}");
+    }
+
+    /// <summary>
+    /// Get Azure OpenAI configuration from environment or settings
+    /// </summary>
+    private AzureOpenAIOptions GetAzureOpenAIOptions()
+    {
+        // Try to read from environment variables first
+        var endpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT");
+        var apiKey = Environment.GetEnvironmentVariable("AZURE_OPENAI_API_KEY");
+        var dalle3Deployment = Environment.GetEnvironmentVariable("DALLE3_DEPLOYMENT_NAME") ?? "dall-e-3";
+        var gpt4oMiniDeployment = Environment.GetEnvironmentVariable("GPT4O_MINI_DEPLOYMENT_NAME") ?? "gpt-4o-mini";
+
+        if (string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(apiKey))
+        {
+            throw new InvalidOperationException(
+                "Azure OpenAI credentials not found. Set environment variables:\n" +
+                "AZURE_OPENAI_ENDPOINT\n" +
+                "AZURE_OPENAI_API_KEY\n" +
+                "DALLE3_DEPLOYMENT_NAME (optional)\n" +
+                "GPT4O_MINI_DEPLOYMENT_NAME (optional)");
+        }
+
+        return new AzureOpenAIOptions
+        {
+            Endpoint = endpoint,
+            ApiKey = apiKey,
+            DallE3Deployment = dalle3Deployment,
+            Gpt4oMiniDeployment = gpt4oMiniDeployment
+        };
+    }
+}
+
+/// <summary>
+/// Console runner for quick testing
+/// </summary>
+public class Program
+{
+    public static async Task Main(string[] args)
+    {
+        Console.WriteLine("===========================================");
+        Console.WriteLine("  Icon Generator - Prompt Experimentation");
+        Console.WriteLine("===========================================\n");
+
+        var tests = new PromptExperimentationTests();
+
+        try
+        {
+            Console.WriteLine("Select test to run:");
+            Console.WriteLine("1. Style Variations");
+            Console.WriteLine("2. Color Palette Variations");
+            Console.WriteLine("3. Prompt A/B Testing");
+            Console.WriteLine("4. Quality Comparison");
+            Console.WriteLine("5. Batch Generation");
+            Console.WriteLine("6. Generate and Save Results");
+            Console.WriteLine("7. Run All Tests");
+            Console.WriteLine("\nEnter choice (1-7): ");
+
+            var choice = Console.ReadLine();
+
+            switch (choice)
+            {
+                case "1":
+                    await tests.TestStyleVariations();
+                    break;
+                case "2":
+                    await tests.TestColorPalettes();
+                    break;
+                case "3":
+                    await tests.TestPromptVariations();
+                    break;
+                case "4":
+                    await tests.TestQualityComparison();
+                    break;
+                case "5":
+                    await tests.TestBatchGeneration();
+                    break;
+                case "6":
+                    await tests.TestAndSaveResults();
+                    break;
+                case "7":
+                    await tests.TestStyleVariations();
+                    await tests.TestColorPalettes();
+                    await tests.TestPromptVariations();
+                    await tests.TestQualityComparison();
+                    await tests.TestBatchGeneration();
+                    await tests.TestAndSaveResults();
+                    break;
+                default:
+                    Console.WriteLine("Invalid choice");
+                    break;
+            }
+
+            Console.WriteLine("\n=== Tests Complete ===");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"\nError: {ex.Message}");
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+        }
+    }
+}

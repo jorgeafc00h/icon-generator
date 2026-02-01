@@ -135,252 +135,28 @@ stages:
               publishLocation: 'Container'
 
   # ============================================
-  # Stage 4: Deploy Backend
-  # NOTE: Disabled until Azure service connection is created
+  # Deployment stages commented out until service connection is authorized
+  # To enable: Authorize "Azure PROD" service connection in Azure DevOps
+  # Project Settings > Service connections > Azure PROD > Security > Grant access to all pipelines
   # ============================================
-  - stage: DeployBackend
-    displayName: 'Deploy Backend'
-    condition: false  # Disabled until service connection is set up
-    dependsOn: BuildBackend  # Removed Infrastructure dependency
-    jobs:
-      - job: DeployFunctions
-        displayName: 'Deploy Azure Functions'
-        pool:
-          vmImage: $(vmImageName)
-        steps:
-          - task: DownloadBuildArtifacts@0
-            displayName: 'Download Function Artifact'
-            inputs:
-              buildType: 'current'
-              downloadType: 'single'
-              artifactName: 'functions'
-              downloadPath: '$(System.ArtifactsDirectory)'
+  
+  # - stage: DeployBackend
+  #   displayName: 'Deploy Backend'
+  #   dependsOn: BuildBackend
+  #   ... (deployment tasks)
+  
+  # - stage: DeployFrontend
+  #   displayName: 'Deploy Frontend'
+  #   dependsOn: BuildFrontend
+  #   ... (deployment tasks)
+  
+  # - stage: PostDeployment
+  #   displayName: 'Post-Deployment Configuration'
+  #   dependsOn: [DeployBackend, DeployFrontend]
+  #   ... (configuration tasks)
+  
+  # - stage: SmokeTests
+  #   displayName: 'Smoke Tests'
+  #   dependsOn: [DeployBackend, DeployFrontend]
+  #   ... (test tasks)
 
-          - task: AzureFunctionApp@1
-            displayName: 'Deploy to Azure Functions'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              appType: 'functionAppLinux'
-              appName: '$(functionAppName)' # From infrastructure outputs
-              package: '$(System.ArtifactsDirectory)/functions/functions.zip'
-              runtimeStack: 'DOTNET-ISOLATED|10.0'
-              deploymentMethod: 'zipDeploy'
-
-          - task: AzureAppServiceSettings@1
-            displayName: 'Configure Function App Settings'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              appName: '$(functionAppName)'
-              resourceGroupName: $(resourceGroupName)
-              appSettings: |
-                [
-                  {
-                    "name": "AZURE_OPENAI_ENDPOINT",
-                    "value": "$(AZURE_OPENAI_ENDPOINT)",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "AZURE_OPENAI_API_KEY",
-                    "value": "$(AZURE_OPENAI_API_KEY)",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "DALLE3_DEPLOYMENT_NAME",
-                    "value": "dalle3-icon-generator",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "GPT4O_MINI_DEPLOYMENT_NAME",
-                    "value": "gpt-4o-mini-prompts",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "AZURE_STORAGE_CONNECTION_STRING",
-                    "value": "$(storageConnectionString)",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "STORAGE_CONTAINER_NAME",
-                    "value": "generated-icons",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "COSMOS_ENDPOINT",
-                    "value": "$(cosmosEndpoint)",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "COSMOS_KEY",
-                    "value": "$(cosmosKey)",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "COSMOS_DATABASE",
-                    "value": "IconGeneratorDB",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "STRIPE_SECRET_KEY",
-                    "value": "$(STRIPE_SECRET_KEY)",
-                    "slotSetting": false
-                  },
-                  {
-                    "name": "ALLOWED_ORIGINS",
-                    "value": "$(staticWebAppUrl)",
-                    "slotSetting": false
-                  }
-                ]
-
-  # ============================================
-  # Stage 5: Deploy Frontend
-  # NOTE: Disabled until Azure service connection is created
-  # ============================================
-  - stage: DeployFrontend
-    displayName: 'Deploy Frontend'
-    condition: false  # Disabled until service connection is set up
-    dependsOn: BuildFrontend  # Removed Infrastructure dependency
-    jobs:
-      - job: DeployStaticWebApp
-        displayName: 'Deploy to Static Web App'
-        pool:
-          vmImage: $(vmImageName)
-        steps:
-          - task: DownloadBuildArtifacts@0
-            displayName: 'Download Frontend Artifact'
-            inputs:
-              buildType: 'current'
-              downloadType: 'single'
-              artifactName: 'frontend'
-              downloadPath: '$(System.ArtifactsDirectory)'
-
-          - task: AzureStaticWebApp@0
-            displayName: 'Deploy Static Web App'
-            inputs:
-              app_location: '$(System.ArtifactsDirectory)/frontend'
-              azure_static_web_apps_api_token: '$(staticWebAppToken)'
-              skip_app_build: true
-              skip_api_build: true
-
-  # ============================================
-  # Stage 6: Post-Deployment Configuration
-  # NOTE: Disabled until Azure service connection is created
-  # ============================================
-  - stage: PostDeployment
-    displayName: 'Post-Deployment Configuration'
-    condition: false  # Disabled until service connection is set up
-    dependsOn:
-      - DeployBackend
-      - DeployFrontend
-    jobs:
-      - job: ConfigureServices
-        displayName: 'Configure Services'
-        pool:
-          vmImage: $(vmImageName)
-        steps:
-          - task: AzureCLI@2
-            displayName: 'Initialize Cosmos DB'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                # Create database and containers
-                az cosmosdb sql database create \
-                  --account-name $(cosmosAccountName) \
-                  --resource-group $(resourceGroupName) \
-                  --name IconGeneratorDB \
-                  --throughput 400
-
-                # Create Users container
-                az cosmosdb sql container create \
-                  --account-name $(cosmosAccountName) \
-                  --resource-group $(resourceGroupName) \
-                  --database-name IconGeneratorDB \
-                  --name Users \
-                  --partition-key-path "/id" \
-                  --throughput 400
-
-                # Create Icons container
-                az cosmosdb sql container create \
-                  --account-name $(cosmosAccountName) \
-                  --resource-group $(resourceGroupName) \
-                  --database-name IconGeneratorDB \
-                  --name Icons \
-                  --partition-key-path "/userId" \
-                  --throughput 400
-
-          - task: AzureCLI@2
-            displayName: 'Configure Blob Storage'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                # Create containers
-                az storage container create \
-                  --name generated-icons \
-                  --account-name $(storageAccountName) \
-                  --public-access blob
-
-                az storage container create \
-                  --name app-resources \
-                  --account-name $(storageAccountName) \
-                  --public-access blob
-
-          - task: AzureCLI@2
-            displayName: 'Deploy AI Models'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                echo "Note: AI model deployments must be done through Azure AI Foundry portal"
-                echo "1. Navigate to https://ai.azure.com"
-                echo "2. Deploy DALL-E 3 with name: dalle3-icon-generator"
-                echo "3. Deploy GPT-4o-mini with name: gpt-4o-mini-prompts"
-
-  # ============================================
-  # Stage 7: Smoke Tests
-  # NOTE: Disabled until Azure service connection is created
-  # ============================================
-  - stage: SmokeTests
-    displayName: 'Smoke Tests'
-    condition: false  # Disabled until service connection is set up
-    dependsOn:
-      - DeployBackend
-      - DeployFrontend
-    jobs:
-      - job: TestEndpoints
-        displayName: 'Test API Endpoints'
-        pool:
-          vmImage: $(vmImageName)
-        steps:
-          - task: PowerShell@2
-            displayName: 'Health Check'
-            inputs:
-              targetType: 'inline'
-              script: |
-                $functionUrl = "$(functionAppUrl)"
-                $staticWebAppUrl = "$(staticWebAppUrl)"
-
-                # Test Function App
-                try {
-                  $response = Invoke-WebRequest -Uri "$functionUrl/api/health" -Method Get -TimeoutSec 30
-                  if ($response.StatusCode -eq 200) {
-                    Write-Host "✓ Function App is healthy"
-                  }
-                } catch {
-                  Write-Error "✗ Function App health check failed: $_"
-                  exit 1
-                }
-
-                # Test Static Web App
-                try {
-                  $response = Invoke-WebRequest -Uri $staticWebAppUrl -Method Get -TimeoutSec 30
-                  if ($response.StatusCode -eq 200) {
-                    Write-Host "✓ Static Web App is accessible"
-                  }
-                } catch {
-                  Write-Error "✗ Static Web App check failed: $_"
-                  exit 1
-                }

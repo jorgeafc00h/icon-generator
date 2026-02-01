@@ -7,7 +7,7 @@ namespace IconGenerator.Functions.Models;
 public class AppResourcesGenerationRequest
 {
     public string IconId { get; set; } = string.Empty;
-    public List<string> Platforms { get; set} = new();
+    public List<string> Platforms { get; set; } = new();
     public ResourceType ResourceType { get; set; } = ResourceType.AppIcons;
     public AppResourcesOptions Options { get; set; } = new();
 }

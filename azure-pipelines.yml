@@ -17,7 +17,7 @@ pr:
       - develop
 
 variables:
-  - group: icon-generator-variables # Create this in Azure DevOps Library
+  # - group: icon-generator-variables # Commented out - create this in Azure DevOps Library if needed
   - name: azureSubscription
     value: 'icon-generator-service-connection' # Create service connection in Azure DevOps
   - name: resourceGroupName

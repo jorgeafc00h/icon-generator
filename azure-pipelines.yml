@@ -32,9 +32,12 @@ variables:
 stages:
   # ============================================
   # Stage 1: Infrastructure Deployment
+  # NOTE: Commented out until Azure service connection is created
+  # Create service connection in Azure DevOps: Project Settings > Service connections > New > Azure Resource Manager
   # ============================================
-  - stage: Infrastructure
-    displayName: 'Deploy Infrastructure'
+  # - stage: Infrastructure
+  #   displayName: 'Deploy Infrastructure'
+  #   condition: false  # Disabled until service connection is set up
     jobs:
       - job: DeployBicep
         displayName: 'Deploy Bicep Templates'
@@ -97,7 +100,7 @@ stages:
   # ============================================
   - stage: BuildBackend
     displayName: 'Build Backend'
-    dependsOn: Infrastructure
+    # dependsOn: Infrastructure  # Commented out - remove dependency on Infrastructure stage
     jobs:
       - job: BuildFunctions
         displayName: 'Build Azure Functions'
@@ -152,7 +155,7 @@ stages:
   # ============================================
   - stage: BuildFrontend
     displayName: 'Build Frontend'
-    dependsOn: Infrastructure
+    # dependsOn: Infrastructure  # Commented out - remove dependency on Infrastructure stage
     jobs:
       - job: BuildReact
         displayName: 'Build React App'
@@ -182,9 +185,11 @@ stages:
 
   # ============================================
   # Stage 4: Deploy Backend
+  # NOTE: Disabled until Azure service connection is created
   # ============================================
   - stage: DeployBackend
     displayName: 'Deploy Backend'
+    condition: false  # Disabled until service connection is set up
     dependsOn:
       - BuildBackend
       - Infrastructure
@@ -279,9 +284,11 @@ stages:
 
   # ============================================
   # Stage 5: Deploy Frontend
+  # NOTE: Disabled until Azure service connection is created
   # ============================================
   - stage: DeployFrontend
     displayName: 'Deploy Frontend'
+    condition: false  # Disabled until service connection is set up
     dependsOn:
       - BuildFrontend
       - Infrastructure
@@ -309,9 +316,11 @@ stages:
 
   # ============================================
   # Stage 6: Post-Deployment Configuration
+  # NOTE: Disabled until Azure service connection is created
   # ============================================
   - stage: PostDeployment
     displayName: 'Post-Deployment Configuration'
+    condition: false  # Disabled until service connection is set up
     dependsOn:
       - DeployBackend
       - DeployFrontend
@@ -385,9 +394,11 @@ stages:
 
   # ============================================
   # Stage 7: Smoke Tests
+  # NOTE: Disabled until Azure service connection is created
   # ============================================
   - stage: SmokeTests
     displayName: 'Smoke Tests'
+    condition: false  # Disabled until service connection is set up
     dependsOn:
       - DeployBackend
       - DeployFrontend

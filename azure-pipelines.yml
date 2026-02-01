@@ -141,9 +141,7 @@ stages:
   - stage: DeployBackend
     displayName: 'Deploy Backend'
     condition: false  # Disabled until service connection is set up
-    dependsOn:
-      - BuildBackend
-      - Infrastructure
+    dependsOn: BuildBackend  # Removed Infrastructure dependency
     jobs:
       - job: DeployFunctions
         displayName: 'Deploy Azure Functions'
@@ -240,9 +238,7 @@ stages:
   - stage: DeployFrontend
     displayName: 'Deploy Frontend'
     condition: false  # Disabled until service connection is set up
-    dependsOn:
-      - BuildFrontend
-      - Infrastructure
+    dependsOn: BuildFrontend  # Removed Infrastructure dependency
     jobs:
       - job: DeployStaticWebApp
         displayName: 'Deploy to Static Web App'

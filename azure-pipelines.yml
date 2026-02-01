@@ -186,16 +186,12 @@ stages:
       - BuildBackend
       - Infrastructure
     jobs:
-      - deployment: DeployFunctions
+      - job: DeployFunctions
         displayName: 'Deploy Azure Functions'
         pool:
           vmImage: $(vmImageName)
-        # environment: '$(Build.SourceBranchName)' # Commented out - create environment in Azure DevOps if approvals/checks are needed
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: DownloadBuildArtifacts@0
+        steps:
+          - task: DownloadBuildArtifacts@0
                   displayName: 'Download Function Artifact'
                   inputs:
                     buildType: 'current'
@@ -287,16 +283,12 @@ stages:
       - BuildFrontend
       - Infrastructure
     jobs:
-      - deployment: DeployStaticWebApp
+      - job: DeployStaticWebApp
         displayName: 'Deploy to Static Web App'
         pool:
           vmImage: $(vmImageName)
-        # environment: '$(Build.SourceBranchName)' # Commented out - create environment in Azure DevOps if approvals/checks are needed
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - task: DownloadBuildArtifacts@0
+        steps:
+          - task: DownloadBuildArtifacts@0
                   displayName: 'Download Frontend Artifact'
                   inputs:
                     buildType: 'current'

@@ -190,7 +190,7 @@ stages:
         displayName: 'Deploy Azure Functions'
         pool:
           vmImage: $(vmImageName)
-        environment: '$(Build.SourceBranchName)'
+        # environment: '$(Build.SourceBranchName)' # Commented out - create environment in Azure DevOps if approvals/checks are needed
         strategy:
           runOnce:
             deploy:
@@ -291,7 +291,7 @@ stages:
         displayName: 'Deploy to Static Web App'
         pool:
           vmImage: $(vmImageName)
-        environment: '$(Build.SourceBranchName)'
+        # environment: '$(Build.SourceBranchName)' # Commented out - create environment in Azure DevOps if approvals/checks are needed
         strategy:
           runOnce:
             deploy:

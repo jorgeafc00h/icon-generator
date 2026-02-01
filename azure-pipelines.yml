@@ -18,7 +18,7 @@ pr:
 
 variables:
   - name: azureSubscription
-    value: 'icon-generator-service-connection' # Create service connection in Azure DevOps
+    value: 'Azure PROD' # Azure service connection name
   # Note: Add variable group 'icon-generator-variables' in Azure DevOps Library if needed
   - name: resourceGroupName
     value: 'rg-icon-generator'

@@ -192,29 +192,29 @@ stages:
           vmImage: $(vmImageName)
         steps:
           - task: DownloadBuildArtifacts@0
-                  displayName: 'Download Function Artifact'
-                  inputs:
-                    buildType: 'current'
-                    downloadType: 'single'
-                    artifactName: 'functions'
-                    downloadPath: '$(System.ArtifactsDirectory)'
+            displayName: 'Download Function Artifact'
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'functions'
+              downloadPath: '$(System.ArtifactsDirectory)'
 
-                - task: AzureFunctionApp@1
-                  displayName: 'Deploy to Azure Functions'
-                  inputs:
-                    azureSubscription: $(azureSubscription)
-                    appType: 'functionAppLinux'
-                    appName: '$(functionAppName)' # From infrastructure outputs
-                    package: '$(System.ArtifactsDirectory)/functions/functions.zip'
-                    runtimeStack: 'NODE|18'
-                    deploymentMethod: 'zipDeploy'
+          - task: AzureFunctionApp@1
+            displayName: 'Deploy to Azure Functions'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              appType: 'functionAppLinux'
+              appName: '$(functionAppName)' # From infrastructure outputs
+              package: '$(System.ArtifactsDirectory)/functions/functions.zip'
+              runtimeStack: 'NODE|18'
+              deploymentMethod: 'zipDeploy'
 
-                - task: AzureAppServiceSettings@1
-                  displayName: 'Configure Function App Settings'
-                  inputs:
-                    azureSubscription: $(azureSubscription)
-                    appName: '$(functionAppName)'
-                    resourceGroupName: $(resourceGroupName)
+          - task: AzureAppServiceSettings@1
+            displayName: 'Configure Function App Settings'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              appName: '$(functionAppName)'
+              resourceGroupName: $(resourceGroupName)
                     appSettings: |
                       [
                         {
@@ -289,20 +289,20 @@ stages:
           vmImage: $(vmImageName)
         steps:
           - task: DownloadBuildArtifacts@0
-                  displayName: 'Download Frontend Artifact'
-                  inputs:
-                    buildType: 'current'
-                    downloadType: 'single'
-                    artifactName: 'frontend'
-                    downloadPath: '$(System.ArtifactsDirectory)'
+            displayName: 'Download Frontend Artifact'
+            inputs:
+              buildType: 'current'
+              downloadType: 'single'
+              artifactName: 'frontend'
+              downloadPath: '$(System.ArtifactsDirectory)'
 
-                - task: AzureStaticWebApp@0
-                  displayName: 'Deploy Static Web App'
-                  inputs:
-                    app_location: '$(System.ArtifactsDirectory)/frontend'
-                    azure_static_web_apps_api_token: '$(staticWebAppToken)'
-                    skip_app_build: true
-                    skip_api_build: true
+          - task: AzureStaticWebApp@0
+            displayName: 'Deploy Static Web App'
+            inputs:
+              app_location: '$(System.ArtifactsDirectory)/frontend'
+              azure_static_web_apps_api_token: '$(staticWebAppToken)'
+              skip_app_build: true
+              skip_api_build: true
 
   # ============================================
   # Stage 6: Post-Deployment Configuration

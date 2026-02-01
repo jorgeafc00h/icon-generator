@@ -17,9 +17,9 @@ pr:
       - develop
 
 variables:
-  # - group: icon-generator-variables # Commented out - create this in Azure DevOps Library if needed
   - name: azureSubscription
     value: 'icon-generator-service-connection' # Create service connection in Azure DevOps
+  # Note: Add variable group 'icon-generator-variables' in Azure DevOps Library if needed
   - name: resourceGroupName
     value: 'rg-icon-generator'
   - name: location
@@ -104,29 +104,32 @@ stages:
         pool:
           vmImage: $(vmImageName)
         steps:
-          - task: NodeTool@0
-            displayName: 'Install Node.js'
+          - task: UseDotNet@2
+            displayName: 'Install .NET SDK'
             inputs:
-              versionSpec: $(nodeVersion)
+              version: '10.x'
 
-          - script: |
-              cd api
-              npm ci
-              npm run build
-              npm run test:ci
-            displayName: 'Install Dependencies & Build'
-
-          - task: CopyFiles@2
-            displayName: 'Copy Function App Files'
+          - task: DotNetCoreCLI@2
+            displayName: 'Restore NuGet Packages'
             inputs:
-              SourceFolder: '$(System.DefaultWorkingDirectory)/api'
-              Contents: |
-                **/*
-                !node_modules/**
-                !src/**
-                !**/*.ts
-                !tsconfig.json
-              TargetFolder: '$(Build.ArtifactStagingDirectory)/functions'
+              command: 'restore'
+              projects: 'api/IconGenerator.Functions.csproj'
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Build Functions'
+            inputs:
+              command: 'build'
+              projects: 'api/IconGenerator.Functions.csproj'
+              arguments: '--configuration Release'
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Publish Functions'
+            inputs:
+              command: 'publish'
+              publishWebProjects: false
+              projects: 'api/IconGenerator.Functions.csproj'
+              arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/functions'
+              zipAfterPublish: false
 
           - task: ArchiveFiles@2
             displayName: 'Archive Functions'
@@ -206,7 +209,7 @@ stages:
               appType: 'functionAppLinux'
               appName: '$(functionAppName)' # From infrastructure outputs
               package: '$(System.ArtifactsDirectory)/functions/functions.zip'
-              runtimeStack: 'NODE|18'
+              runtimeStack: 'DOTNET-ISOLATED|10.0'
               deploymentMethod: 'zipDeploy'
 
           - task: AzureAppServiceSettings@1
@@ -215,64 +218,64 @@ stages:
               azureSubscription: $(azureSubscription)
               appName: '$(functionAppName)'
               resourceGroupName: $(resourceGroupName)
-                    appSettings: |
-                      [
-                        {
-                          "name": "AZURE_OPENAI_ENDPOINT",
-                          "value": "$(AZURE_OPENAI_ENDPOINT)",
-                          "slotSetting": false
-                        },
-                        {
-                          "name": "AZURE_OPENAI_API_KEY",
-                          "value": "$(AZURE_OPENAI_API_KEY)",
-                          "slotSetting": false
-                        },
-                        {
-                          "name": "DALLE3_DEPLOYMENT_NAME",
-                          "value": "dalle3-icon-generator",
-                          "slotSetting": false
-                        },
-                        {
-                          "name": "GPT4O_MINI_DEPLOYMENT_NAME",
-                          "value": "gpt-4o-mini-prompts",
-                          "slotSetting": false
-                        },
-                        {
-                          "name": "AZURE_STORAGE_CONNECTION_STRING",
-                          "value": "$(storageConnectionString)",
-                          "slotSetting": false
-                        },
-                        {
-                          "name": "STORAGE_CONTAINER_NAME",
-                          "value": "generated-icons",
-                          "slotSetting": false
-                        },
-                        {
-                          "name": "COSMOS_ENDPOINT",
-                          "value": "$(cosmosEndpoint)",
-                          "slotSetting": false
-                        },
-                        {
-                          "name": "COSMOS_KEY",
-                          "value": "$(cosmosKey)",
-                          "slotSetting": false
-                        },
-                        {
-                          "name": "COSMOS_DATABASE",
-                          "value": "IconGeneratorDB",
-                          "slotSetting": false
-                        },
-                        {
-                          "name": "STRIPE_SECRET_KEY",
-                          "value": "$(STRIPE_SECRET_KEY)",
-                          "slotSetting": false
-                        },
-                        {
-                          "name": "ALLOWED_ORIGINS",
-                          "value": "$(staticWebAppUrl)",
-                          "slotSetting": false
-                        }
-                      ]
+              appSettings: |
+                [
+                  {
+                    "name": "AZURE_OPENAI_ENDPOINT",
+                    "value": "$(AZURE_OPENAI_ENDPOINT)",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "AZURE_OPENAI_API_KEY",
+                    "value": "$(AZURE_OPENAI_API_KEY)",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "DALLE3_DEPLOYMENT_NAME",
+                    "value": "dalle3-icon-generator",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "GPT4O_MINI_DEPLOYMENT_NAME",
+                    "value": "gpt-4o-mini-prompts",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "AZURE_STORAGE_CONNECTION_STRING",
+                    "value": "$(storageConnectionString)",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "STORAGE_CONTAINER_NAME",
+                    "value": "generated-icons",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "COSMOS_ENDPOINT",
+                    "value": "$(cosmosEndpoint)",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "COSMOS_KEY",
+                    "value": "$(cosmosKey)",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "COSMOS_DATABASE",
+                    "value": "IconGeneratorDB",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "STRIPE_SECRET_KEY",
+                    "value": "$(STRIPE_SECRET_KEY)",
+                    "slotSetting": false
+                  },
+                  {
+                    "name": "ALLOWED_ORIGINS",
+                    "value": "$(staticWebAppUrl)",
+                    "slotSetting": false
+                  }
+                ]
 
   # ============================================
   # Stage 5: Deploy Frontend

@@ -37,63 +37,14 @@ stages:
   # ============================================
   # - stage: Infrastructure
   #   displayName: 'Deploy Infrastructure'
-  #   condition: false  # Disabled until service connection is set up
-    jobs:
-      - job: DeployBicep
-        displayName: 'Deploy Bicep Templates'
-        pool:
-          vmImage: $(vmImageName)
-        steps:
-          - task: AzureCLI@2
-            displayName: 'Create Resource Group'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                az group create \
-                  --name $(resourceGroupName) \
-                  --location $(location) \
-                  --tags Environment=$(Build.SourceBranchName) Project=IconGenerator
-
-          - task: AzureCLI@2
-            displayName: 'Validate Bicep Templates'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                az deployment group validate \
-                  --resource-group $(resourceGroupName) \
-                  --template-file ./infrastructure/main.bicep \
-                  --parameters ./infrastructure/parameters.$(Build.SourceBranchName).json
-
-          - task: AzureResourceManagerTemplateDeployment@3
-            displayName: 'Deploy Infrastructure'
-            inputs:
-              deploymentScope: 'Resource Group'
-              azureResourceManagerConnection: $(azureSubscription)
-              subscriptionId: $(subscriptionId)
-              action: 'Create Or Update Resource Group'
-              resourceGroupName: $(resourceGroupName)
-              location: $(location)
-              templateLocation: 'Linked artifact'
-              csmFile: './infrastructure/main.bicep'
-              csmParametersFile: './infrastructure/parameters.$(Build.SourceBranchName).json'
-              deploymentMode: 'Incremental'
-              deploymentName: 'infrastructure-$(Build.BuildId)'
-              deploymentOutputs: 'infraOutputs'
-
-          - task: PowerShell@2
-            displayName: 'Parse Infrastructure Outputs'
-            inputs:
-              targetType: 'inline'
-              script: |
-                $outputs = '$(infraOutputs)' | ConvertFrom-Json
-                foreach ($output in $outputs.PSObject.Properties) {
-                  Write-Host "##vso[task.setvariable variable=$($output.Name);isOutput=true]$($output.Value.value)"
-                }
-            name: InfraOutputs
+  #   jobs:
+  #     - job: DeployBicep
+  #       displayName: 'Deploy Bicep Templates'
+  #       pool:
+  #         vmImage: $(vmImageName)
+  #       steps:
+  #         - task: AzureCLI@2
+  #           ... (Infrastructure deployment tasks disabled)
 
   # ============================================
   # Stage 2: Build Backend (Azure Functions)

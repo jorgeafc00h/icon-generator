@@ -1,184 +1,558 @@
-# App Resources Generator - Phase 2 Implementation Guide
+# App Resources Generator - Phase 2 Enhanced Edition
+## Beautiful App Design with Platform-Specific Guidelines
 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Design Philosophy](#design-philosophy)
+- [Platform Design Guidelines](#platform-design-guidelines)
 - [Feature Scope](#feature-scope)
-- [Platform Requirements](#platform-requirements)
 - [Architecture](#architecture)
+- [Design System Integration](#design-system-integration)
 - [Backend Implementation](#backend-implementation)
 - [Frontend Implementation](#frontend-implementation)
-- [Asset Generation Logic](#asset-generation-logic)
-- [ZIP Package Creation](#zip-package-creation)
+- [Asset Generation with Design Guidelines](#asset-generation-with-design-guidelines)
+- [Beautiful UI Components](#beautiful-ui-components)
 - [Testing](#testing)
 - [Deployment](#deployment)
 - [User Experience](#user-experience)
+- [Design Best Practices](#design-best-practices)
 - [Appendix](#appendix)
 
 ---
 
 ## Overview
 
-The App Resources Generator extends the icon generator platform by automatically creating all required icon sizes and formats for iOS, Android, Web, and macOS platforms from a single generated icon. This eliminates manual resizing work and ensures proper compliance with platform requirements.
+The **App Resources Generator Phase 2** goes beyond simple icon resizing. It creates **beautiful, platform-compliant app assets** that follow iOS Human Interface Guidelines (HIG) and Material Design 3 principles, ensuring your app not only meets technical requirements but also delivers exceptional visual experiences.
+
+### What Makes This Different
+
+Traditional icon generators just resize images. Our enhanced platform:
+
+✅ **Applies platform-specific design principles** (iOS clarity, Android Material You)  
+✅ **Generates beautiful, modern assets** following 2024/2025 design trends  
+✅ **Ensures accessibility compliance** (WCAG 2.1 AA standards)  
+✅ **Creates adaptive designs** that work across themes and contexts  
+✅ **Provides design feedback** on icon quality and improvements  
+✅ **Includes brand consistency** tools and guidelines  
 
 ### Value Proposition
 
-- **Time Savings**: Generate 50+ icon sizes in seconds vs. hours of manual work
-- **Platform Compliance**: Guaranteed adherence to Apple, Google, and web standards
-- **Professional Output**: Properly named files with correct folder structure
-- **Multiple Formats**: PNG, ICO, ICNS support
-- **Asset Catalogs**: Generate iOS AppIcon.appiconset with Contents.json
+- **Professional Quality**: Platform-compliant assets that pass App Store/Play Store review
+- **Design Excellence**: Icons optimized for clarity, depth, and visual hierarchy
+- **Time Savings**: 2-3 hours of manual work → 15 seconds automated
+- **Brand Consistency**: Unified visual language across all platforms
+- **Accessibility**: WCAG-compliant color contrast and sizing
+- **Modern Aesthetics**: Following 2024/2025 design trends
 
-### Phase 2 Goals
+---
 
-1. Generate all iOS icon sizes (20x20 to 1024x1024)
-2. Generate all Android icon sizes (mdpi to xxxhdpi)
-3. Generate web favicons (16x16 to 512x512)
-4. Generate macOS app icons
-5. Create downloadable ZIP packages with proper folder structure
-6. Support both square and adaptive (Android) icons
-7. Provide asset catalog generation for iOS
+## Design Philosophy
+
+### Core Principles (Cross-Platform)
+
+Our asset generator is built on universal design principles that ensure quality across all platforms:
+
+#### 1. **Clarity First**
+Every element should be easy to understand, focusing on minimalist design and straightforward navigation. Icons must communicate their purpose instantly.
+
+**Implementation:**
+- High contrast between foreground and background
+- Simple, recognizable shapes
+- Minimal detail that scales well
+- Clear focal points
+
+#### 2. **Platform Deference**
+Respect platform conventions while maintaining brand identity. Design minimizes distractions, allowing users to focus on their tasks.
+
+**Implementation:**
+- iOS: Rounded corners (22.37% radius)
+- Android: Adaptive icon safe zones
+- Web: Standard favicon formats
+- macOS: Multi-resolution clarity
+
+#### 3. **Visual Depth**
+Depth is achieved through layering, shadows, and visual effects, creating a sense of hierarchy.
+
+**Implementation:**
+- Subtle shadows for elevation
+- Layered adaptive icons (Android)
+- 3D effects where appropriate
+- Gradient overlays for depth
+
+#### 4. **Consistency & Coherence**
+Maintain visual unity across all asset sizes and platforms.
+
+**Implementation:**
+- Unified color palette
+- Consistent iconography style
+- Predictable visual patterns
+- Coherent brand expression
+
+#### 5. **Accessibility by Design**
+Design apps to be accessible to users with disabilities, adhering to accessibility guidelines.
+
+**Implementation:**
+- WCAG 2.1 AA color contrast (4.5:1 minimum)
+- Touch target sizes ≥44x44pt (iOS) / 48x48dp (Android)
+- Colorblind-safe palettes
+- Clear visual feedback
+
+---
+
+## Platform Design Guidelines
+
+### iOS Human Interface Guidelines (HIG)
+
+#### Core iOS Principles
+
+The iOS platform is built on core design principles that prioritize clarity, depth, and focus.
+
+**1. Clarity**
+- Use San Francisco font (system font)
+- Ample white space
+- High contrast ratios
+- Legible text at all sizes
+
+**2. Deference**
+- Content is king
+- Minimal chrome
+- Translucent backgrounds
+- Respect user's wallpaper
+
+**3. Depth**
+- Layered interfaces
+- Realistic motion
+- Parallax effects
+- Subtle shadows
+
+#### iOS Icon Requirements
+
+| Aspect | Requirement |
+|--------|-------------|
+| **Shape** | Rounded square with 22.37% corner radius |
+| **Background** | Should work on any wallpaper color |
+| **Detail Level** | Scales from 20x20 to 1024x1024 |
+| **Color** | Vibrant, recognizable at small sizes |
+| **Contrast** | 4.5:1 minimum for all elements |
+| **Grid** | 8pt grid alignment |
+
+**iOS Design Checklist:**
+- [ ] Icon recognizable at 40x40 pixels
+- [ ] Works on light and dark backgrounds
+- [ ] Rounded corners applied (iOS applies own mask)
+- [ ] No text in icon (except logos)
+- [ ] Single focused element
+- [ ] High contrast focal point
+- [ ] Brand colors preserved
+
+#### iOS App Icon Best Practices
+
+```
+DO ✅
+- Use a single, memorable visual
+- Employ simple, universal imagery
+- Create a unique shape or silhouette
+- Use vibrant, high-contrast colors
+- Test on actual devices
+- Preview on different wallpapers
+
+DON'T ❌
+- Include photos or screenshots
+- Use too many small details
+- Apply iOS rounded corners yourself
+- Include words (except brand names)
+- Use pure black or white backgrounds
+- Copy other app icons
+```
+
+### Material Design 3 (Android)
+
+#### Material You Philosophy
+
+Material 3 brings dynamic color, adaptive layouts, and expressive interactions that make apps feel more personal and engaging.
+
+**Core Pillars:**
+
+**1. Material as Metaphor**
+- Surfaces and edges behave like physical materials with depth and shadow
+- Elements cast realistic shadows
+- Elevation communicates hierarchy
+
+**2. Bold, Graphic, Intentional**
+- Using bold colors, typography, and imagery helps create clear and engaging design
+- Strong visual hierarchy
+- Purposeful color use
+
+**3. Motion Provides Meaning**
+- Animation and transitions should be meaningful and guide the user's understanding
+- Smooth, natural transitions
+- Responsive feedback
+
+#### Android Adaptive Icons
+
+Adaptive icons consist of two layers:
+
+**Foreground Layer:**
+- 108x108dp canvas
+- 72x72dp safe zone (center)
+- Icon must fit within safe zone
+- Transparent background
+
+**Background Layer:**
+- 108x108dp canvas
+- Solid color or subtle pattern
+- Complements foreground
+- No critical content
+
+**Mask Shapes:**
+- Circle (most common)
+- Squircle (rounded square)
+- Square (rare)
+- System applies mask
+
+#### Material Design Color System
+
+**Dynamic Color (Material You):**
+Apps adapt to your wallpaper and personal style.
+
+**Color Roles:**
+- **Primary**: Main brand color
+- **Secondary**: Accent and highlights
+- **Tertiary**: Contrasting accents
+- **Error**: Warnings and errors
+- **Surface**: Backgrounds
+- **On-[color]**: Text on colored surfaces
+
+**Implementation:**
+```typescript
+interface MaterialColorScheme {
+  primary: string;        // Main brand color
+  onPrimary: string;      // Text on primary
+  primaryContainer: string;
+  secondary: string;      // Accent color
+  onSecondary: string;
+  tertiary: string;       // Contrasting accent
+  error: string;          // #DC362E (red)
+  background: string;     // App background
+  surface: string;        // Card backgrounds
+}
+```
+
+#### Android Icon Requirements
+
+| Aspect | Requirement |
+|--------|-------------|
+| **Shape** | Adaptive (circle/squircle/square mask) |
+| **Safe Zone** | 72x72dp within 108x108dp canvas |
+| **Background** | Solid color or subtle gradient |
+| **Foreground** | Main icon element, transparent BG |
+| **Play Store** | 512x512px high-res icon |
+| **Legacy** | 48-192px standard densities |
+
+**Android Design Checklist:**
+- [ ] Foreground fits in 72x72dp safe zone
+- [ ] Background complements foreground
+- [ ] Works with circle, squircle, square masks
+- [ ] 15% padding from edges (safe zone)
+- [ ] High contrast between layers
+- [ ] Brand colors in foreground
+- [ ] Background uses brand color or neutral
+
+### Web/PWA Guidelines
+
+#### Progressive Web Apps
+
+**PWA Manifest Requirements:**
+- **App Name**: Short and descriptive
+- **Icons**: 192x192, 512x512 minimum
+- **Theme Color**: Matches app branding
+- **Background Color**: Splash screen color
+- **Display**: standalone/fullscreen/minimal-ui
+
+**Favicon Best Practices:**
+```
+Sizes to Include:
+- 16x16: Browser tab
+- 32x32: Taskbar/bookmarks
+- 48x48: Windows desktop
+- 180x180: Apple Touch Icon
+- 192x192: Android Chrome
+- 512x512: PWA splash screen
+```
+
+**Design Guidelines:**
+- Simple, recognizable at 16x16
+- High contrast for small sizes
+- Works on browser UI backgrounds
+- Consistent with brand identity
+
+### macOS Guidelines
+
+**macOS Icon Design:**
+- **Depth**: Use shadows and highlights
+- **Perspective**: Slight 3D angle
+- **Detail**: Rich at large sizes
+- **Simplicity**: Clear at small sizes
+- **Consistency**: macOS visual language
+
+**ICNS Requirements:**
+- 16x16 through 1024x1024
+- @1x and @2x variants
+- Optimized for Retina displays
+- High quality PNG sources
 
 ---
 
 ## Feature Scope
 
-### iOS Requirements
+### Enhanced Asset Generation
 
-Apple requires the following icon sizes for iOS apps:
+#### Core Features (From Phase 2)
 
-| Size (pts) | Scale | Actual Size (px) | Usage |
-|------------|-------|------------------|-------|
-| 20x20 | @2x, @3x | 40, 60 | iPad notifications |
-| 29x29 | @2x, @3x | 58, 87 | Settings |
-| 40x40 | @2x, @3x | 80, 120 | Spotlight (iPad) |
-| 60x60 | @2x, @3x | 120, 180 | iPhone App Icon |
-| 76x76 | @1x, @2x | 76, 152 | iPad App Icon |
-| 83.5x83.5 | @2x | 167 | iPad Pro |
-| 1024x1024 | @1x | 1024 | App Store |
+✅ Generate iOS icons (13 sizes)  
+✅ Generate Android icons (15+ sizes)  
+✅ Generate Web/PWA assets (7 files)  
+✅ Generate macOS ICNS files  
+✅ Create organized ZIP packages  
+✅ Auto-generate platform README files  
 
-**Total iOS icons needed**: 13 files
+#### NEW: Design Intelligence Features
 
-### Android Requirements
+🎨 **Design Quality Analysis**
+- Contrast ratio checking
+- Detail level assessment
+- Scalability testing
+- Platform compliance validation
 
-Android uses density-based scaling:
+🎨 **Adaptive Color Generation**
+- Extract primary colors from icon
+- Generate Material You color schemes
+- Create dark/light mode variants
+- Accessibility-safe palettes
 
-| Density | Scale | Size (px) | Folder |
-|---------|-------|-----------|--------|
-| mdpi | 1.0x | 48x48 | mipmap-mdpi |
-| hdpi | 1.5x | 72x72 | mipmap-hdpi |
-| xhdpi | 2.0x | 96x96 | mipmap-xhdpi |
-| xxhdpi | 3.0x | 144x144 | mipmap-xxhdpi |
-| xxxhdpi | 4.0x | 192x192 | mipmap-xxxhdpi |
+🎨 **Platform-Specific Optimization**
+- iOS: Auto-apply clarity principles
+- Android: Optimize for adaptive masks
+- Web: Ensure favicon clarity
+- macOS: Add depth and dimension
 
-**Additional Android Assets**:
-- Foreground layer (adaptive icons)
-- Background layer (adaptive icons)
-- Legacy launcher icon (512x512)
-- Play Store icon (512x512)
+🎨 **Design Feedback System**
+- Real-time design suggestions
+- Accessibility warnings
+- Platform compliance checks
+- Quality score (0-100)
 
-**Total Android icons needed**: 15+ files
-
-### Web/PWA Requirements
-
-| Size | Purpose |
-|------|---------|
-| 16x16 | Browser favicon |
-| 32x32 | Browser favicon |
-| 48x48 | Browser favicon |
-| 180x180 | Apple Touch Icon |
-| 192x192 | Android Chrome |
-| 512x512 | PWA Splash |
-| favicon.ico | Multi-size ICO |
-
-**Total Web icons needed**: 7 files
-
-### macOS Requirements
-
-| Size | Usage |
-|------|-------|
-| 16x16 | Finder, menu bar (@1x) |
-| 32x32 | Finder, menu bar (@2x) |
-| 128x128 | Finder sidebar (@1x) |
-| 256x256 | Finder sidebar (@2x) |
-| 512x512 | Finder icon (@1x) |
-| 1024x1024 | Finder icon (@2x) |
-
-**Output**: Single `.icns` file containing all sizes
+🎨 **Brand Consistency Tools**
+- Color palette extraction
+- Typography recommendations
+- Visual style guide generation
+- Multi-icon consistency checking
 
 ---
 
 ## Architecture
 
-### System Flow
+### Enhanced System Flow
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    User Initiates Export                     │
-│              (Clicks "Generate App Resources")               │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Frontend Request Handler                     │
-│  - Validates icon availability                               │
-│  - Selects target platforms (iOS/Android/Web/macOS)         │
-│  - Shows loading state                                       │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│            Azure Function: generateAppResources              │
-│                                                              │
-│  1. Fetch original icon from Blob Storage                   │
-│  2. Load image into Sharp processor                         │
-│  3. Generate all required sizes                             │
-│  4. Apply platform-specific optimizations                   │
-│  5. Create folder structure                                 │
-│  6. Generate metadata files (Contents.json, etc.)           │
-│  7. Create ZIP archive                                      │
-│  8. Upload ZIP to Blob Storage                              │
-│  9. Return download URL                                     │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Download & Unpack                         │
-│  - User downloads ZIP file                                   │
-│  - Extract to project directory                             │
-│  - Import assets into Xcode/Android Studio                  │
-└─────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│           User Uploads/Generates Icon (Phase 1)               │
+│                                                               │
+│  [Icon Preview]  →  [Generate App Resources Button]          │
+└──────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────┐
+│                   Design Analysis Engine                      │
+│                                                               │
+│  ✓ Color Palette Extraction                                  │
+│  ✓ Contrast Ratio Analysis                                   │
+│  ✓ Detail Level Assessment                                   │
+│  ✓ Accessibility Compliance                                  │
+│  ✓ Platform Compatibility Check                              │
+│                                                               │
+│  → Generates Design Quality Score (0-100)                    │
+│  → Provides Improvement Suggestions                          │
+└──────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────┐
+│              Platform Selection & Configuration               │
+│                                                               │
+│  Platforms: ☑ iOS  ☑ Android  ☐ Web  ☐ macOS                │
+│                                                               │
+│  iOS Options:                                                │
+│    ☑ Generate Asset Catalog                                 │
+│    ☑ Apply Rounded Corners                                  │
+│    ☑ Optimize for Light/Dark Mode                           │
+│                                                               │
+│  Android Options:                                            │
+│    ☑ Generate Adaptive Icons                                │
+│    ☑ Create Material You Color Scheme                       │
+│    ☑ Include Round Icons                                    │
+│    🎨 Background Color: [Color Picker]                      │
+│                                                               │
+│  Web Options:                                                │
+│    📱 App Name: [________]                                  │
+│    🎨 Theme Color: [Color Picker]                           │
+│    🎨 Background Color: [Color Picker]                      │
+└──────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────┐
+│            Smart Asset Generation Pipeline                    │
+│                                                               │
+│  1. Load Original Icon (1024x1024)                           │
+│  2. Apply Platform-Specific Optimizations:                   │
+│     • iOS: Ensure clarity at all sizes                       │
+│     • Android: Create adaptive layers                        │
+│     • Web: Optimize for browser rendering                   │
+│     • macOS: Add depth effects                              │
+│  3. Generate Color Schemes                                   │
+│  4. Create Size Variants (50+ assets)                        │
+│  5. Validate Accessibility                                   │
+│  6. Generate Metadata Files                                  │
+│  7. Create Design Guide PDF                                  │
+│  8. Package Everything                                       │
+└──────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌──────────────────────────────────────────────────────────────┐
+│                 Download Package Contents                     │
+│                                                               │
+│  📦 app-resources.zip                                        │
+│     ├── ios/                                                 │
+│     │   ├── AppIcon.appiconset/                             │
+│     │   │   ├── Contents.json                               │
+│     │   │   └── icon-*.png (13 files)                       │
+│     │   └── README.txt                                       │
+│     ├── android/                                             │
+│     │   ├── mipmap-*/                                        │
+│     │   │   ├── ic_launcher.png                             │
+│     │   │   ├── ic_launcher_round.png                       │
+│     │   │   ├── ic_launcher_foreground.png                  │
+│     │   │   └── ic_launcher_background.png                  │
+│     │   └── README.txt                                       │
+│     ├── web/                                                 │
+│     │   ├── favicons/                                        │
+│     │   ├── manifest.json                                   │
+│     │   └── README.txt                                       │
+│     ├── macos/                                               │
+│     │   ├── AppIcon.icns                                     │
+│     │   └── README.txt                                       │
+│     ├── design-guide.pdf          ← NEW!                     │
+│     └── color-schemes.json        ← NEW!                     │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-### Data Models
+---
+
+## Design System Integration
+
+### Color Palette Generation
+
+Extract and generate comprehensive color schemes from the original icon:
 
 ```typescript
-interface AssetGenerationRequest {
-  iconId: string;
-  platforms: ('ios' | 'android' | 'web' | 'macos')[];
-  options?: {
-    includeAdaptiveIcons?: boolean; // Android
-    generateAppIconSet?: boolean;   // iOS asset catalog
-    roundedCorners?: boolean;        // Optional rounding
-    backgroundColor?: string;        // For adaptive backgrounds
+interface ColorPalette {
+  // Extracted from icon
+  dominant: string;        // Most prominent color
+  vibrant: string;         // Most vibrant color
+  darkVibrant: string;     // Vibrant dark variant
+  lightVibrant: string;    // Vibrant light variant
+  muted: string;           // Subtle, muted color
+  darkMuted: string;       // Muted dark variant
+  
+  // Generated Material You scheme
+  materialYou: {
+    primary: string;
+    onPrimary: string;
+    primaryContainer: string;
+    onPrimaryContainer: string;
+    secondary: string;
+    onSecondary: string;
+    secondaryContainer: string;
+    tertiary: string;
+    error: string;
+    background: string;
+    surface: string;
+  };
+  
+  // iOS dynamic colors
+  ios: {
+    tint: string;           // Primary tint color
+    lightMode: ColorScheme;
+    darkMode: ColorScheme;
+  };
+  
+  // Accessibility
+  wcag: {
+    aa: boolean;            // Meets AA standard
+    aaa: boolean;           // Meets AAA standard
+    contrastRatio: number;  // Actual ratio
   };
 }
+```
 
-interface AssetGenerationResponse {
-  zipUrl: string;
-  expiresAt: string;
-  fileSize: number;
-  platforms: string[];
-  totalAssets: number;
+### Design Quality Scoring
+
+```typescript
+interface DesignQualityScore {
+  overall: number;         // 0-100
+  breakdown: {
+    clarity: number;       // Icon recognizability
+    contrast: number;      // Color contrast ratio
+    scalability: number;   // Works at all sizes
+    accessibility: number; // WCAG compliance
+    brandFit: number;      // Matches brand style
+  };
+  issues: DesignIssue[];
+  suggestions: DesignSuggestion[];
 }
 
-interface IconSize {
-  name: string;
-  width: number;
-  height: number;
-  scale?: number; // iOS scale factor
-  density?: string; // Android density
-  folder?: string; // Output folder path
+interface DesignIssue {
+  severity: 'critical' | 'warning' | 'info';
+  category: 'accessibility' | 'clarity' | 'platform';
+  message: string;
+  fix: string;
+}
+
+interface DesignSuggestion {
+  title: string;
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+  effort: 'low' | 'medium' | 'high';
+}
+```
+
+Example Output:
+```json
+{
+  "overall": 87,
+  "breakdown": {
+    "clarity": 92,
+    "contrast": 78,
+    "scalability": 95,
+    "accessibility": 81,
+    "brandFit": 90
+  },
+  "issues": [
+    {
+      "severity": "warning",
+      "category": "accessibility",
+      "message": "Contrast ratio of 4.2:1 is below WCAG AA standard",
+      "fix": "Increase contrast to 4.5:1 by darkening background or lightening foreground"
+    }
+  ],
+  "suggestions": [
+    {
+      "title": "Enhance small-size clarity",
+      "description": "Icon details may be lost at 16x16px. Consider simplifying the design.",
+      "impact": "medium",
+      "effort": "low"
+    }
+  ]
 }
 ```
 
@@ -186,543 +560,491 @@ interface IconSize {
 
 ## Backend Implementation
 
-### Project Structure
+### Enhanced Services
 
-```
-api/
-├── src/
-│   ├── functions/
-│   │   └── generateAppResources.ts    # Main function
-│   ├── services/
-│   │   ├── assetGeneratorService.ts   # Core generation logic
-│   │   ├── iosAssetService.ts         # iOS-specific
-│   │   ├── androidAssetService.ts     # Android-specific
-│   │   ├── webAssetService.ts         # Web-specific
-│   │   └── macosAssetService.ts       # macOS-specific
-│   ├── utils/
-│   │   ├── imageProcessor.ts          # Sharp utilities
-│   │   ├── zipBuilder.ts              # ZIP creation
-│   │   └── metadataGenerator.ts       # JSON/XML files
-│   └── constants/
-│       └── iconSizes.ts               # Size definitions
-```
+#### 1. Design Analysis Service
 
-### 1. Icon Size Definitions
-
-Create `api/src/constants/iconSizes.ts`:
-
-```typescript
-export interface IconSize {
-  name: string;
-  width: number;
-  height: number;
-  scale?: number;
-  density?: string;
-  folder?: string;
-}
-
-// iOS Icon Sizes
-export const IOS_ICON_SIZES: IconSize[] = [
-  // iPhone App Icon
-  { name: 'icon-60@2x', width: 120, height: 120, scale: 2 },
-  { name: 'icon-60@3x', width: 180, height: 180, scale: 3 },
-  
-  // iPad App Icon
-  { name: 'icon-76', width: 76, height: 76, scale: 1 },
-  { name: 'icon-76@2x', width: 152, height: 152, scale: 2 },
-  { name: 'icon-83.5@2x', width: 167, height: 167, scale: 2 },
-  
-  // Spotlight
-  { name: 'icon-40@2x', width: 80, height: 80, scale: 2 },
-  { name: 'icon-40@3x', width: 120, height: 120, scale: 3 },
-  
-  // Settings
-  { name: 'icon-29@2x', width: 58, height: 58, scale: 2 },
-  { name: 'icon-29@3x', width: 87, height: 87, scale: 3 },
-  
-  // Notifications
-  { name: 'icon-20@2x', width: 40, height: 40, scale: 2 },
-  { name: 'icon-20@3x', width: 60, height: 60, scale: 3 },
-  
-  // App Store
-  { name: 'icon-1024', width: 1024, height: 1024, scale: 1 },
-];
-
-// Android Icon Sizes
-export const ANDROID_ICON_SIZES: IconSize[] = [
-  { name: 'ic_launcher', width: 48, height: 48, density: 'mdpi', folder: 'mipmap-mdpi' },
-  { name: 'ic_launcher', width: 72, height: 72, density: 'hdpi', folder: 'mipmap-hdpi' },
-  { name: 'ic_launcher', width: 96, height: 96, density: 'xhdpi', folder: 'mipmap-xhdpi' },
-  { name: 'ic_launcher', width: 144, height: 144, density: 'xxhdpi', folder: 'mipmap-xxhdpi' },
-  { name: 'ic_launcher', width: 192, height: 192, density: 'xxxhdpi', folder: 'mipmap-xxxhdpi' },
-  
-  // Round icons (same sizes)
-  { name: 'ic_launcher_round', width: 48, height: 48, density: 'mdpi', folder: 'mipmap-mdpi' },
-  { name: 'ic_launcher_round', width: 72, height: 72, density: 'hdpi', folder: 'mipmap-hdpi' },
-  { name: 'ic_launcher_round', width: 96, height: 96, density: 'xhdpi', folder: 'mipmap-xhdpi' },
-  { name: 'ic_launcher_round', width: 144, height: 144, density: 'xxhdpi', folder: 'mipmap-xxhdpi' },
-  { name: 'ic_launcher_round', width: 192, height: 192, density: 'xxxhdpi', folder: 'mipmap-xxxhdpi' },
-  
-  // Play Store
-  { name: 'playstore-icon', width: 512, height: 512, folder: '' },
-];
-
-// Web/PWA Icon Sizes
-export const WEB_ICON_SIZES: IconSize[] = [
-  { name: 'favicon-16x16', width: 16, height: 16 },
-  { name: 'favicon-32x32', width: 32, height: 32 },
-  { name: 'favicon-48x48', width: 48, height: 48 },
-  { name: 'apple-touch-icon', width: 180, height: 180 },
-  { name: 'android-chrome-192x192', width: 192, height: 192 },
-  { name: 'android-chrome-512x512', width: 512, height: 512 },
-];
-
-// macOS Icon Sizes
-export const MACOS_ICON_SIZES: IconSize[] = [
-  { name: 'icon_16x16', width: 16, height: 16 },
-  { name: 'icon_16x16@2x', width: 32, height: 32 },
-  { name: 'icon_32x32', width: 32, height: 32 },
-  { name: 'icon_32x32@2x', width: 64, height: 64 },
-  { name: 'icon_128x128', width: 128, height: 128 },
-  { name: 'icon_128x128@2x', width: 256, height: 256 },
-  { name: 'icon_256x256', width: 256, height: 256 },
-  { name: 'icon_256x256@2x', width: 512, height: 512 },
-  { name: 'icon_512x512', width: 512, height: 512 },
-  { name: 'icon_512x512@2x', width: 1024, height: 1024 },
-];
-```
-
-### 2. Image Processor Utility
-
-Create `api/src/utils/imageProcessor.ts`:
+Create `api/src/services/designAnalysisService.ts`:
 
 ```typescript
 import sharp from 'sharp';
-import { IconSize } from '../constants/iconSizes';
+import Vibrant from 'node-vibrant';
+import { getContrastRatio } from 'polished';
 
-export class ImageProcessor {
+export class DesignAnalysisService {
   /**
-   * Resize icon to specific dimensions
+   * Analyze icon and extract design metrics
    */
-  static async resizeIcon(
-    inputBuffer: Buffer,
-    width: number,
-    height: number,
-    options?: {
-      roundCorners?: boolean;
-      cornerRadius?: number;
-      backgroundColor?: string;
-    }
-  ): Promise<Buffer> {
-    let image = sharp(inputBuffer);
+  static async analyzeIcon(imageBuffer: Buffer): Promise<DesignAnalysis> {
+    const analysis: DesignAnalysis = {
+      colors: await this.extractColors(imageBuffer),
+      quality: await this.assessQuality(imageBuffer),
+      accessibility: await this.checkAccessibility(imageBuffer),
+      platformFit: await this.assessPlatformFit(imageBuffer),
+    };
 
-    // Resize with high-quality settings
-    image = image.resize(width, height, {
-      fit: 'contain',
-      background: options?.backgroundColor 
-        ? options.backgroundColor 
-        : { r: 0, g: 0, b: 0, alpha: 0 },
-      kernel: sharp.kernel.lanczos3, // High-quality resampling
-    });
+    // Calculate overall score
+    analysis.score = this.calculateOverallScore(analysis);
 
-    // Apply rounded corners if requested
-    if (options?.roundCorners) {
-      const radius = options.cornerRadius || Math.floor(width * 0.225); // 22.5% radius (Apple standard)
+    return analysis;
+  }
+
+  /**
+   * Extract color palette using node-vibrant
+   */
+  private static async extractColors(buffer: Buffer): Promise<ColorPalette> {
+    const palette = await Vibrant.from(buffer).getPalette();
+
+    return {
+      dominant: palette.Vibrant?.hex || '#000000',
+      vibrant: palette.Vibrant?.hex || '#000000',
+      darkVibrant: palette.DarkVibrant?.hex || '#000000',
+      lightVibrant: palette.LightVibrant?.hex || '#FFFFFF',
+      muted: palette.Muted?.hex || '#888888',
+      darkMuted: palette.DarkMuted?.hex || '#444444',
+      lightMuted: palette.LightMuted?.hex || '#CCCCCC',
+    };
+  }
+
+  /**
+   * Generate Material You color scheme
+   */
+  static generateMaterialYouScheme(baseColor: string): MaterialYouScheme {
+    // Use material color utilities to generate full scheme
+    const hsl = this.hexToHsl(baseColor);
+    
+    return {
+      primary: baseColor,
+      onPrimary: this.getContrastingColor(baseColor),
+      primaryContainer: this.adjustLightness(baseColor, 90),
+      onPrimaryContainer: this.adjustLightness(baseColor, 10),
+      secondary: this.rotateHue(baseColor, 30),
+      onSecondary: this.getContrastingColor(this.rotateHue(baseColor, 30)),
+      secondaryContainer: this.adjustLightness(this.rotateHue(baseColor, 30), 90),
+      tertiary: this.rotateHue(baseColor, 60),
+      error: '#DC362E',
+      background: '#FEFBFF',
+      surface: '#FEFBFF',
+      surfaceVariant: '#E7E0EC',
+      outline: '#79747E',
+    };
+  }
+
+  /**
+   * Assess design quality
+   */
+  private static async assessQuality(buffer: Buffer): Promise<QualityMetrics> {
+    const image = sharp(buffer);
+    const metadata = await image.metadata();
+    const stats = await image.stats();
+
+    return {
+      clarity: await this.assessClarity(buffer),
+      complexity: this.calculateComplexity(stats),
+      scalability: await this.testScalability(buffer),
+      brandAlignment: 85, // Placeholder - would use ML model
+    };
+  }
+
+  /**
+   * Test icon at different sizes
+   */
+  private static async testScalability(buffer: Buffer): Promise<number> {
+    const sizes = [16, 32, 48, 64, 128];
+    const scores: number[] = [];
+
+    for (const size of sizes) {
+      const resized = await sharp(buffer)
+        .resize(size, size)
+        .toBuffer();
       
-      const roundedCornerSvg = `
-        <svg>
-          <rect x="0" y="0" width="${width}" height="${height}" 
-                rx="${radius}" ry="${radius}" />
-        </svg>
-      `;
-      
-      image = image.composite([{
-        input: Buffer.from(roundedCornerSvg),
-        blend: 'dest-in'
-      }]);
+      const clarity = await this.assessClarity(resized);
+      scores.push(clarity);
     }
 
-    return image.png({ quality: 100, compressionLevel: 9 }).toBuffer();
+    // Average with weighting towards smaller sizes
+    const weights = [3, 2, 1.5, 1, 0.5]; // Favor small sizes
+    const weightedSum = scores.reduce((sum, score, i) => sum + score * weights[i], 0);
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+    
+    return Math.round(weightedSum / totalWeight);
   }
 
   /**
-   * Create adaptive icon background layer
+   * Check WCAG accessibility compliance
    */
-  static async createAdaptiveBackground(
-    width: number,
-    height: number,
-    backgroundColor: string
-  ): Promise<Buffer> {
-    return sharp({
-      create: {
-        width,
-        height,
-        channels: 4,
-        background: backgroundColor,
-      }
-    })
-    .png()
-    .toBuffer();
+  private static async checkAccessibility(buffer: Buffer): Promise<AccessibilityMetrics> {
+    const palette = await this.extractColors(buffer);
+    
+    // Check contrast ratios
+    const contrastRatios = {
+      vibrantOnLight: getContrastRatio(palette.vibrant, '#FFFFFF'),
+      vibrantOnDark: getContrastRatio(palette.vibrant, '#000000'),
+      dominantOnLight: getContrastRatio(palette.dominant, '#FFFFFF'),
+      dominantOnDark: getContrastRatio(palette.dominant, '#000000'),
+    };
+
+    const meetsAA = Object.values(contrastRatios).some(ratio => ratio >= 4.5);
+    const meetsAAA = Object.values(contrastRatios).some(ratio => ratio >= 7.0);
+
+    return {
+      wcagAA: meetsAA,
+      wcagAAA: meetsAAA,
+      contrastRatios,
+      colorBlindSafe: this.checkColorBlindSafety(palette),
+      recommendations: this.generateAccessibilityRecommendations(contrastRatios),
+    };
   }
 
   /**
-   * Create adaptive icon foreground (icon centered in safe zone)
+   * Generate design improvement suggestions
    */
-  static async createAdaptiveForeground(
-    inputBuffer: Buffer,
-    width: number,
-    height: number
-  ): Promise<Buffer> {
-    // Adaptive icons should be 108x108dp with 72x72dp safe zone
-    // Scale the icon to 66.67% of the canvas size for safe zone
-    const safeZoneRatio = 72 / 108;
-    const iconSize = Math.floor(width * safeZoneRatio);
-    const padding = Math.floor((width - iconSize) / 2);
+  static generateSuggestions(analysis: DesignAnalysis): DesignSuggestion[] {
+    const suggestions: DesignSuggestion[] = [];
 
-    const resizedIcon = await sharp(inputBuffer)
-      .resize(iconSize, iconSize, {
-        fit: 'contain',
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .png()
-      .toBuffer();
+    // Accessibility suggestions
+    if (!analysis.accessibility.wcagAA) {
+      suggestions.push({
+        title: 'Improve Color Contrast',
+        description: 'Current contrast ratio does not meet WCAG AA standards (4.5:1). ' +
+                    'Consider using darker or lighter colors for better visibility.',
+        impact: 'high',
+        effort: 'low',
+        category: 'accessibility',
+      });
+    }
 
-    return sharp({
-      create: {
-        width,
-        height,
-        channels: 4,
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      }
-    })
-    .composite([{
-      input: resizedIcon,
-      top: padding,
-      left: padding,
-    }])
-    .png()
-    .toBuffer();
+    // Clarity suggestions
+    if (analysis.quality.clarity < 80) {
+      suggestions.push({
+        title: 'Simplify Icon Design',
+        description: 'Icon may be too complex for small sizes. Remove fine details and ' +
+                    'focus on a single, clear visual element.',
+        impact: 'high',
+        effort: 'medium',
+        category: 'clarity',
+      });
+    }
+
+    // Scalability suggestions
+    if (analysis.quality.scalability < 75) {
+      suggestions.push({
+        title: 'Optimize for Small Sizes',
+        description: 'Icon loses clarity at 16x16 and 32x32 pixels. Consider creating ' +
+                    'a simplified version for small sizes.',
+        impact: 'medium',
+        effort: 'medium',
+        category: 'scalability',
+      });
+    }
+
+    return suggestions;
   }
 
   /**
-   * Generate favicon.ico (multi-size)
+   * Calculate overall design score (0-100)
    */
-  static async generateFaviconIco(inputBuffer: Buffer): Promise<Buffer> {
-    // ICO requires multiple sizes: 16, 32, 48, 64, 128, 256
-    // For now, return a 32x32 PNG (browsers accept PNG as .ico)
-    // For true ICO, you'd need a library like 'to-ico'
-    return this.resizeIcon(inputBuffer, 32, 32);
-  }
+  private static calculateOverallScore(analysis: DesignAnalysis): number {
+    const weights = {
+      clarity: 0.30,
+      contrast: 0.25,
+      scalability: 0.25,
+      accessibility: 0.20,
+    };
 
-  /**
-   * Apply iOS icon mask (rounded corners)
-   */
-  static async applyIOSMask(
-    inputBuffer: Buffer,
-    width: number,
-    height: number
-  ): Promise<Buffer> {
-    // iOS applies its own rounding, but pre-rounding helps with preview
-    // iOS corner radius is 22.37% of icon size
-    return this.resizeIcon(inputBuffer, width, height, {
-      roundCorners: false, // iOS applies its own mask
-    });
+    const score = 
+      analysis.quality.clarity * weights.clarity +
+      (analysis.accessibility.wcagAA ? 100 : 50) * weights.contrast +
+      analysis.quality.scalability * weights.scalability +
+      (analysis.accessibility.wcagAA ? 100 : analysis.accessibility.wcagAAA ? 80 : 60) * weights.accessibility;
+
+    return Math.round(score);
   }
 }
 ```
 
-### 3. iOS Asset Service
+#### 2. Enhanced iOS Asset Service
 
-Create `api/src/services/iosAssetService.ts`:
+Update `api/src/services/iosAssetService.ts`:
 
 ```typescript
 import { IOS_ICON_SIZES } from '../constants/iconSizes';
 import { ImageProcessor } from '../utils/imageProcessor';
-
-export interface IOSAssetOutput {
-  files: Map<string, Buffer>; // filename -> buffer
-  contentsJson?: any;
-}
+import { DesignAnalysisService } from './designAnalysisService';
 
 export class IOSAssetService {
   /**
-   * Generate all iOS icon sizes
+   * Generate iOS assets with design intelligence
    */
-  static async generateAssets(originalBuffer: Buffer): Promise<IOSAssetOutput> {
+  static async generateEnhancedAssets(
+    originalBuffer: Buffer,
+    options?: {
+      optimizeForClarity?: boolean;
+      generateDarkMode?: boolean;
+      applyIOSGuidelines?: boolean;
+    }
+  ): Promise<IOSAssetOutput> {
     const files = new Map<string, Buffer>();
 
-    // Generate each required size
+    // Analyze design first
+    const analysis = await DesignAnalysisService.analyzeIcon(originalBuffer);
+
+    // Apply iOS-specific optimizations
+    let processedIcon = originalBuffer;
+    if (options?.applyIOSGuidelines) {
+      processedIcon = await this.applyIOSOptimizations(originalBuffer, analysis);
+    }
+
+    // Generate each required size with quality preservation
     for (const size of IOS_ICON_SIZES) {
-      const resized = await ImageProcessor.resizeIcon(
-        originalBuffer,
+      const resized = await this.generateIOSIcon(
+        processedIcon,
         size.width,
-        size.height
+        size.height,
+        {
+          enhanceClarity: options?.optimizeForClarity,
+          preserveDetails: size.width >= 60, // More detail for larger icons
+        }
       );
       files.set(`${size.name}.png`, resized);
     }
 
-    return { files };
-  }
-
-  /**
-   * Generate iOS Asset Catalog structure
-   */
-  static async generateAppIconSet(originalBuffer: Buffer): Promise<IOSAssetOutput> {
-    const files = new Map<string, Buffer>();
-
-    // Generate each size
-    for (const size of IOS_ICON_SIZES) {
-      const resized = await ImageProcessor.resizeIcon(
-        originalBuffer,
-        size.width,
-        size.height
-      );
-      
-      // Asset catalog uses specific naming
-      const filename = this.getAssetCatalogFilename(size.width, size.height, size.scale || 1);
-      files.set(`AppIcon.appiconset/${filename}`, resized);
+    // Generate dark mode variants if requested
+    if (options?.generateDarkMode) {
+      await this.generateDarkModeVariants(processedIcon, files);
     }
 
-    // Generate Contents.json
-    const contentsJson = this.generateContentsJson();
-    files.set('AppIcon.appiconset/Contents.json', Buffer.from(JSON.stringify(contentsJson, null, 2)));
-
-    return { files, contentsJson };
-  }
-
-  /**
-   * Get proper filename for iOS asset catalog
-   */
-  private static getAssetCatalogFilename(width: number, height: number, scale: number): string {
-    const pts = width / scale;
-    if (scale === 1) {
-      return `icon-${pts}x${pts}.png`;
-    }
-    return `icon-${pts}x${pts}@${scale}x.png`;
-  }
-
-  /**
-   * Generate Contents.json for iOS Asset Catalog
-   */
-  private static generateContentsJson() {
     return {
+      files,
+      analysis,
+      colorScheme: analysis.colors,
+    };
+  }
+
+  /**
+   * Apply iOS Human Interface Guidelines optimizations
+   */
+  private static async applyIOSOptimizations(
+    buffer: Buffer,
+    analysis: DesignAnalysis
+  ): Promise<Buffer> {
+    let image = sharp(buffer);
+
+    // Enhance clarity: increase sharpness slightly
+    image = image.sharpen({ sigma: 1.5 });
+
+    // Optimize color vibrancy (iOS prefers vibrant colors)
+    image = image.modulate({
+      saturation: 1.1, // 10% more saturation
+      brightness: 1.05, // 5% brighter
+    });
+
+    // Ensure adequate contrast
+    if (!analysis.accessibility.wcagAA) {
+      image = image.normalize(); // Auto-adjust contrast
+    }
+
+    return image.png({ quality: 100 }).toBuffer();
+  }
+
+  /**
+   * Generate icon with size-specific optimizations
+   */
+  private static async generateIOSIcon(
+    buffer: Buffer,
+    width: number,
+    height: number,
+    options?: {
+      enhanceClarity?: boolean;
+      preserveDetails?: boolean;
+    }
+  ): Promise<Buffer> {
+    let image = sharp(buffer);
+
+    // Use different resampling for different sizes
+    const kernel = width < 48 
+      ? sharp.kernel.nearest  // Preserve clarity for very small sizes
+      : sharp.kernel.lanczos3; // High quality for larger sizes
+
+    image = image.resize(width, height, {
+      fit: 'contain',
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+      kernel,
+    });
+
+    // For very small sizes, enhance edges
+    if (width <= 32 && options?.enhanceClarity) {
+      image = image.sharpen({ sigma: 2 });
+    }
+
+    // For large sizes, preserve fine details
+    if (width >= 512 && options?.preserveDetails) {
+      image = image.sharpen({ sigma: 0.5 });
+    }
+
+    return image.png({ 
+      quality: 100,
+      compressionLevel: 9,
+    }).toBuffer();
+  }
+
+  /**
+   * Generate dark mode icon variants
+   */
+  private static async generateDarkModeVariants(
+    buffer: Buffer,
+    files: Map<string, Buffer>
+  ): Promise<void> {
+    // iOS automatically adapts icons, but we can provide optimized versions
+    // This is optional and mainly for preview purposes
+    
+    for (const size of IOS_ICON_SIZES.filter(s => s.width >= 60)) {
+      const darkVariant = await sharp(buffer)
+        .resize(size.width, size.height)
+        .modulate({
+          brightness: 0.9, // Slightly darker for dark mode
+        })
+        .png({ quality: 100 })
+        .toBuffer();
+      
+      files.set(`${size.name}-dark.png`, darkVariant);
+    }
+  }
+
+  /**
+   * Generate Contents.json with color scheme info
+   */
+  static generateEnhancedContentsJson(colorScheme?: ColorPalette) {
+    const contents = {
       images: [
-        // iPhone Notifications
-        {
-          size: "20x20",
-          idiom: "iphone",
-          filename: "icon-20x20@2x.png",
-          scale: "2x"
-        },
-        {
-          size: "20x20",
-          idiom: "iphone",
-          filename: "icon-20x20@3x.png",
-          scale: "3x"
-        },
-        // iPhone Settings
-        {
-          size: "29x29",
-          idiom: "iphone",
-          filename: "icon-29x29@2x.png",
-          scale: "2x"
-        },
-        {
-          size: "29x29",
-          idiom: "iphone",
-          filename: "icon-29x29@3x.png",
-          scale: "3x"
-        },
-        // iPhone Spotlight
-        {
-          size: "40x40",
-          idiom: "iphone",
-          filename: "icon-40x40@2x.png",
-          scale: "2x"
-        },
-        {
-          size: "40x40",
-          idiom: "iphone",
-          filename: "icon-40x40@3x.png",
-          scale: "3x"
-        },
-        // iPhone App Icon
-        {
-          size: "60x60",
-          idiom: "iphone",
-          filename: "icon-60x60@2x.png",
-          scale: "2x"
-        },
-        {
-          size: "60x60",
-          idiom: "iphone",
-          filename: "icon-60x60@3x.png",
-          scale: "3x"
-        },
-        // iPad Notifications
-        {
-          size: "20x20",
-          idiom: "ipad",
-          filename: "icon-20x20.png",
-          scale: "1x"
-        },
-        {
-          size: "20x20",
-          idiom: "ipad",
-          filename: "icon-20x20@2x.png",
-          scale: "2x"
-        },
-        // iPad Settings
-        {
-          size: "29x29",
-          idiom: "ipad",
-          filename: "icon-29x29.png",
-          scale: "1x"
-        },
-        {
-          size: "29x29",
-          idiom: "ipad",
-          filename: "icon-29x29@2x.png",
-          scale: "2x"
-        },
-        // iPad Spotlight
-        {
-          size: "40x40",
-          idiom: "ipad",
-          filename: "icon-40x40.png",
-          scale: "1x"
-        },
-        {
-          size: "40x40",
-          idiom: "ipad",
-          filename: "icon-40x40@2x.png",
-          scale: "2x"
-        },
-        // iPad App Icon
-        {
-          size: "76x76",
-          idiom: "ipad",
-          filename: "icon-76x76.png",
-          scale: "1x"
-        },
-        {
-          size: "76x76",
-          idiom: "ipad",
-          filename: "icon-76x76@2x.png",
-          scale: "2x"
-        },
-        // iPad Pro
-        {
-          size: "83.5x83.5",
-          idiom: "ipad",
-          filename: "icon-83.5x83.5@2x.png",
-          scale: "2x"
-        },
-        // App Store
-        {
-          size: "1024x1024",
-          idiom: "ios-marketing",
-          filename: "icon-1024x1024.png",
-          scale: "1x"
-        }
+        // ... (same as before)
       ],
       info: {
         version: 1,
-        author: "Icon Generator"
+        author: "Icon Generator with Design Intelligence",
+      },
+      properties: {
+        "template-rendering-intent": "original",
       }
     };
+
+    // Add color scheme metadata if available
+    if (colorScheme) {
+      (contents as any).colorScheme = {
+        primary: colorScheme.vibrant,
+        tint: colorScheme.lightVibrant,
+      };
+    }
+
+    return contents;
   }
 }
 ```
 
-### 4. Android Asset Service
+#### 3. Enhanced Android Asset Service
 
-Create `api/src/services/androidAssetService.ts`:
+Update `api/src/services/androidAssetService.ts`:
 
 ```typescript
 import { ANDROID_ICON_SIZES } from '../constants/iconSizes';
 import { ImageProcessor } from '../utils/imageProcessor';
-
-export interface AndroidAssetOutput {
-  files: Map<string, Buffer>;
-}
+import { DesignAnalysisService } from './designAnalysisService';
 
 export class AndroidAssetService {
   /**
-   * Generate standard Android icons
+   * Generate Android assets with Material Design 3 compliance
    */
-  static async generateAssets(
+  static async generateEnhancedAssets(
     originalBuffer: Buffer,
     options?: {
-      includeRound?: boolean;
       includeAdaptive?: boolean;
+      generateMaterialYou?: boolean;
       backgroundColor?: string;
     }
   ): Promise<AndroidAssetOutput> {
     const files = new Map<string, Buffer>();
 
-    // Generate standard launcher icons
-    for (const size of ANDROID_ICON_SIZES) {
-      if (size.name === 'ic_launcher' || size.name === 'playstore-icon') {
-        const resized = await ImageProcessor.resizeIcon(
-          originalBuffer,
-          size.width,
-          size.height
-        );
-        
-        const path = size.folder 
-          ? `${size.folder}/${size.name}.png`
-          : `${size.name}.png`;
-        
-        files.set(path, resized);
-      }
-    }
+    // Analyze design
+    const analysis = await DesignAnalysisService.analyzeIcon(originalBuffer);
 
-    // Generate round icons if requested
-    if (options?.includeRound) {
-      await this.generateRoundIcons(originalBuffer, files);
-    }
-
-    // Generate adaptive icons if requested
-    if (options?.includeAdaptive) {
-      await this.generateAdaptiveIcons(
-        originalBuffer, 
-        files, 
-        options.backgroundColor || '#FFFFFF'
+    // Generate Material You color scheme
+    let materialYouScheme: MaterialYouScheme | undefined;
+    if (options?.generateMaterialYou) {
+      materialYouScheme = DesignAnalysisService.generateMaterialYouScheme(
+        analysis.colors.vibrant
       );
     }
 
-    return { files };
-  }
+    // Apply Material Design optimizations
+    const optimizedIcon = await this.applyMaterialDesignOptimizations(
+      originalBuffer,
+      analysis
+    );
 
-  /**
-   * Generate round launcher icons
-   */
-  private static async generateRoundIcons(
-    originalBuffer: Buffer,
-    files: Map<string, Buffer>
-  ): Promise<void> {
-    const roundSizes = ANDROID_ICON_SIZES.filter(s => s.name === 'ic_launcher_round');
-    
-    for (const size of roundSizes) {
-      const resized = await ImageProcessor.resizeIcon(
-        originalBuffer,
+    // Generate standard launcher icons
+    for (const size of ANDROID_ICON_SIZES.filter(s => s.name === 'ic_launcher')) {
+      const resized = await this.generateAndroidIcon(
+        optimizedIcon,
         size.width,
         size.height,
-        { roundCorners: true, cornerRadius: size.width / 2 } // Fully round
+        { density: size.density }
       );
-      
       files.set(`${size.folder}/${size.name}.png`, resized);
     }
+
+    // Generate adaptive icons
+    if (options?.includeAdaptive) {
+      await this.generateEnhancedAdaptiveIcons(
+        optimizedIcon,
+        files,
+        options.backgroundColor || materialYouScheme?.primary || '#FFFFFF',
+        analysis
+      );
+    }
+
+    // Generate round icons
+    await this.generateRoundIcons(optimizedIcon, files);
+
+    // Generate Play Store icon
+    const playStoreIcon = await this.generatePlayStoreIcon(optimizedIcon);
+    files.set('playstore-icon.png', playStoreIcon);
+
+    return {
+      files,
+      analysis,
+      materialYouScheme,
+    };
   }
 
   /**
-   * Generate adaptive icon layers
+   * Apply Material Design 3 optimizations
    */
-  private static async generateAdaptiveIcons(
-    originalBuffer: Buffer,
+  private static async applyMaterialDesignOptimizations(
+    buffer: Buffer,
+    analysis: DesignAnalysis
+  ): Promise<Buffer> {
+    let image = sharp(buffer);
+
+    // Material Design uses bold colors and intentional design
+    // Enhance vibrancy
+    image = image.modulate({
+      saturation: 1.15, // 15% more saturation for bold colors
+    });
+
+    // Ensure depth through subtle shadows
+    // (This would require more complex image processing)
+
+    return image.png({ quality: 100 }).toBuffer();
+  }
+
+  /**
+   * Generate enhanced adaptive icons with design intelligence
+   */
+  private static async generateEnhancedAdaptiveIcons(
+    buffer: Buffer,
     files: Map<string, Buffer>,
-    backgroundColor: string
+    backgroundColor: string,
+    analysis: DesignAnalysis
   ): Promise<void> {
     const densities = ['mdpi', 'hdpi', 'xhdpi', 'xxhdpi', 'xxxhdpi'];
     const baseSizes = {
@@ -736,544 +1058,739 @@ export class AndroidAssetService {
     for (const density of densities) {
       const size = baseSizes[density as keyof typeof baseSizes];
       
-      // Generate foreground layer
-      const foreground = await ImageProcessor.createAdaptiveForeground(
-        originalBuffer,
+      // Generate optimized foreground with safe zone compliance
+      const foreground = await this.createOptimizedForeground(
+        buffer,
         size,
-        size
+        analysis
       );
       files.set(`mipmap-${density}/ic_launcher_foreground.png`, foreground);
       
-      // Generate background layer
-      const background = await ImageProcessor.createAdaptiveBackground(
+      // Generate background with Material Design principles
+      const background = await this.createMaterialBackground(
         size,
-        size,
-        backgroundColor
+        backgroundColor,
+        analysis
       );
       files.set(`mipmap-${density}/ic_launcher_background.png`, background);
     }
 
-    // Generate XML configuration files
+    // Generate XML configs
     this.generateAdaptiveIconXML(files);
   }
 
   /**
-   * Generate Android XML configuration for adaptive icons
+   * Create optimized foreground layer respecting 72dp safe zone
    */
-  private static generateAdaptiveIconXML(files: Map<string, Buffer>): void {
-    // ic_launcher.xml
-    const launcherXml = `<?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@mipmap/ic_launcher_background"/>
-    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
-</adaptive-icon>`;
+  private static async createOptimizedForeground(
+    buffer: Buffer,
+    canvasSize: number,
+    analysis: DesignAnalysis
+  ): Promise<Buffer> {
+    // Safe zone is 72dp within 108dp canvas (66.67%)
+    const safeZoneRatio = 72 / 108;
+    const iconSize = Math.floor(canvasSize * safeZoneRatio);
+    const padding = Math.floor((canvasSize - iconSize) / 2);
 
-    // ic_launcher_round.xml
-    const launcherRoundXml = `<?xml version="1.0" encoding="utf-8"?>
-<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:drawable="@mipmap/ic_launcher_background"/>
-    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
-</adaptive-icon>`;
+    // Resize icon to fit safe zone
+    let icon = await sharp(buffer)
+      .resize(iconSize, iconSize, {
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+        kernel: sharp.kernel.lanczos3,
+      });
 
-    files.set('mipmap-anydpi-v26/ic_launcher.xml', Buffer.from(launcherXml));
-    files.set('mipmap-anydpi-v26/ic_launcher_round.xml', Buffer.from(launcherRoundXml));
+    // Enhance clarity for adaptive icon
+    icon = icon.sharpen({ sigma: 1.0 });
+
+    const iconBuffer = await icon.png().toBuffer();
+
+    // Place on transparent canvas
+    return sharp({
+      create: {
+        width: canvasSize,
+        height: canvasSize,
+        channels: 4,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      }
+    })
+    .composite([{
+      input: iconBuffer,
+      top: padding,
+      left: padding,
+    }])
+    .png()
+    .toBuffer();
+  }
+
+  /**
+   * Create Material Design background layer
+   */
+  private static async createMaterialBackground(
+    size: number,
+    color: string,
+    analysis: DesignAnalysis
+  ): Promise<Buffer> {
+    // Option 1: Solid color
+    if (this.isSolidColor(color)) {
+      return sharp({
+        create: {
+          width: size,
+          height: size,
+          channels: 4,
+          background: color,
+        }
+      }).png().toBuffer();
+    }
+
+    // Option 2: Subtle gradient (Material Design style)
+    const gradient = await this.createMaterialGradient(size, color, analysis);
+    return gradient;
+  }
+
+  /**
+   * Create subtle Material Design gradient
+   */
+  private static async createMaterialGradient(
+    size: number,
+    primaryColor: string,
+    analysis: DesignAnalysis
+  ): Promise<Buffer> {
+    // Create SVG gradient
+    const lighterColor = this.adjustLightness(primaryColor, 80);
+    
+    const svg = `
+      <svg width="${size}" height="${size}">
+        <defs>
+          <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:${primaryColor};stop-opacity:1" />
+            <stop offset="100%" style="stop-color:${lighterColor};stop-opacity:1" />
+          </linearGradient>
+        </defs>
+        <rect width="${size}" height="${size}" fill="url(#grad)" />
+      </svg>
+    `;
+
+    return sharp(Buffer.from(svg))
+      .png()
+      .toBuffer();
+  }
+
+  /**
+   * Generate Play Store high-res icon (512x512)
+   */
+  private static async generatePlayStoreIcon(buffer: Buffer): Promise<Buffer> {
+    return sharp(buffer)
+      .resize(512, 512, {
+        fit: 'contain',
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+        kernel: sharp.kernel.lanczos3,
+      })
+      .sharpen({ sigma: 0.5 }) // Subtle sharpening for high-res
+      .png({ quality: 100, compressionLevel: 9 })
+      .toBuffer();
   }
 }
 ```
 
-### 5. Web Asset Service
+#### 4. Design Guide Generator
 
-Create `api/src/services/webAssetService.ts`:
+Create `api/src/services/designGuideService.ts`:
 
 ```typescript
-import { WEB_ICON_SIZES } from '../constants/iconSizes';
-import { ImageProcessor } from '../utils/imageProcessor';
+import PDFDocument from 'pdfkit';
+import { DesignAnalysis, ColorPalette } from '../types';
 
-export interface WebAssetOutput {
-  files: Map<string, Buffer>;
-  manifest?: any;
-}
-
-export class WebAssetService {
+export class DesignGuideService {
   /**
-   * Generate web/PWA icons and manifest
+   * Generate comprehensive design guide PDF
    */
-  static async generateAssets(
-    originalBuffer: Buffer,
-    options?: {
-      appName?: string;
-      themeColor?: string;
-      backgroundColor?: string;
-    }
-  ): Promise<WebAssetOutput> {
-    const files = new Map<string, Buffer>();
+  static async generateDesignGuide(
+    iconBuffer: Buffer,
+    analysis: DesignAnalysis,
+    platforms: string[]
+  ): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({
+        size: 'A4',
+        margins: { top: 50, bottom: 50, left: 50, right: 50 }
+      });
 
-    // Generate all standard web icon sizes
-    for (const size of WEB_ICON_SIZES) {
-      const resized = await ImageProcessor.resizeIcon(
-        originalBuffer,
-        size.width,
-        size.height
-      );
-      files.set(`${size.name}.png`, resized);
-    }
+      const buffers: Buffer[] = [];
+      doc.on('data', buffers.push.bind(buffers));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', reject);
 
-    // Generate favicon.ico (multi-size)
-    const favicon = await ImageProcessor.generateFaviconIco(originalBuffer);
-    files.set('favicon.ico', favicon);
+      // Cover Page
+      this.addCoverPage(doc);
 
-    // Generate web app manifest
-    const manifest = this.generateWebManifest(options);
-    files.set('manifest.json', Buffer.from(JSON.stringify(manifest, null, 2)));
+      // Design Quality Score
+      this.addQualityScorePage(doc, analysis);
 
-    // Generate browserconfig.xml (for Windows tiles)
-    const browserconfig = this.generateBrowserConfig(options);
-    files.set('browserconfig.xml', Buffer.from(browserconfig));
+      // Color Palette
+      this.addColorPalettePage(doc, analysis.colors);
 
-    return { files, manifest };
+      // Platform Guidelines
+      platforms.forEach(platform => {
+        this.addPlatformGuidelinesPage(doc, platform, analysis);
+      });
+
+      // Accessibility Report
+      this.addAccessibilityPage(doc, analysis.accessibility);
+
+      // Usage Examples
+      this.addUsageExamplesPage(doc, iconBuffer);
+
+      // Improvement Suggestions
+      this.addSuggestionsPage(doc, analysis.suggestions);
+
+      doc.end();
+    });
   }
 
-  /**
-   * Generate PWA manifest.json
-   */
-  private static generateWebManifest(options?: {
-    appName?: string;
-    themeColor?: string;
-    backgroundColor?: string;
-  }) {
-    return {
-      name: options?.appName || "My App",
-      short_name: options?.appName || "App",
-      icons: [
+  private static addCoverPage(doc: PDFDocument) {
+    doc
+      .fontSize(36)
+      .font('Helvetica-Bold')
+      .text('App Icon Design Guide', { align: 'center' })
+      .moveDown(2)
+      .fontSize(16)
+      .font('Helvetica')
+      .text('Generated by Icon Generator', { align: 'center' })
+      .text(new Date().toLocaleDateString(), { align: 'center' })
+      .addPage();
+  }
+
+  private static addQualityScorePage(doc: PDFDocument, analysis: DesignAnalysis) {
+    doc
+      .fontSize(24)
+      .font('Helvetica-Bold')
+      .text('Design Quality Score')
+      .moveDown();
+
+    // Overall Score
+    doc
+      .fontSize(48)
+      .fillColor(this.getScoreColor(analysis.score))
+      .text(`${analysis.score}/100`, { align: 'center' })
+      .fillColor('black')
+      .moveDown();
+
+    // Breakdown
+    doc
+      .fontSize(16)
+      .font('Helvetica')
+      .text('Score Breakdown:', { underline: true })
+      .moveDown(0.5);
+
+    const metrics = [
+      { name: 'Clarity', score: analysis.quality.clarity },
+      { name: 'Contrast', score: analysis.quality.contrast },
+      { name: 'Scalability', score: analysis.quality.scalability },
+      { name: 'Accessibility', score: analysis.accessibility.wcagAA ? 100 : 50 },
+    ];
+
+    metrics.forEach(metric => {
+      doc
+        .fontSize(14)
+        .text(`${metric.name}: `, { continued: true })
+        .fillColor(this.getScoreColor(metric.score))
+        .text(`${metric.score}/100`)
+        .fillColor('black')
+        .moveDown(0.3);
+    });
+
+    doc.addPage();
+  }
+
+  private static addColorPalettePage(doc: PDFDocument, colors: ColorPalette) {
+    doc
+      .fontSize(24)
+      .font('Helvetica-Bold')
+      .text('Color Palette')
+      .moveDown();
+
+    // Draw color swatches
+    const swatchSize = 80;
+    const swatchSpacing = 100;
+    let x = 50;
+    let y = doc.y + 20;
+
+    const colorEntries = [
+      { name: 'Vibrant', color: colors.vibrant },
+      { name: 'Dominant', color: colors.dominant },
+      { name: 'Dark Vibrant', color: colors.darkVibrant },
+      { name: 'Light Vibrant', color: colors.lightVibrant },
+      { name: 'Muted', color: colors.muted },
+      { name: 'Dark Muted', color: colors.darkMuted },
+    ];
+
+    colorEntries.forEach((entry, index) => {
+      if (index > 0 && index % 3 === 0) {
+        x = 50;
+        y += swatchSpacing + 40;
+      }
+
+      // Draw color swatch
+      doc
+        .rect(x, y, swatchSize, swatchSize)
+        .fillAndStroke(entry.color, '#000');
+
+      // Add color name and hex
+      doc
+        .fontSize(10)
+        .fillColor('black')
+        .text(entry.name, x, y + swatchSize + 5, {
+          width: swatchSize,
+          align: 'center'
+        })
+        .fontSize(8)
+        .text(entry.color, x, y + swatchSize + 20, {
+          width: swatchSize,
+          align: 'center'
+        });
+
+      x += swatchSpacing + 50;
+    });
+
+    doc.addPage();
+  }
+
+  private static addPlatformGuidelinesPage(
+    doc: PDFDocument,
+    platform: string,
+    analysis: DesignAnalysis
+  ) {
+    doc
+      .fontSize(24)
+      .font('Helvetica-Bold')
+      .text(`${platform.toUpperCase()} Guidelines`)
+      .moveDown();
+
+    const guidelines = this.getPlatformGuidelines(platform);
+
+    doc.fontSize(12).font('Helvetica');
+
+    guidelines.forEach(guideline => {
+      doc
+        .fontSize(14)
+        .font('Helvetica-Bold')
+        .text(guideline.title)
+        .fontSize(12)
+        .font('Helvetica')
+        .text(guideline.description)
+        .moveDown();
+    });
+
+    doc.addPage();
+  }
+
+  private static addAccessibilityPage(
+    doc: PDFDocument,
+    accessibility: AccessibilityMetrics
+  ) {
+    doc
+      .fontSize(24)
+      .font('Helvetica-Bold')
+      .text('Accessibility Report')
+      .moveDown();
+
+    doc
+      .fontSize(14)
+      .font('Helvetica')
+      .text('WCAG Compliance:')
+      .moveDown(0.5);
+
+    // WCAG AA
+    doc
+      .fontSize(12)
+      .text('WCAG 2.1 AA: ', { continued: true })
+      .fillColor(accessibility.wcagAA ? 'green' : 'red')
+      .text(accessibility.wcagAA ? '✓ Pass' : '✗ Fail')
+      .fillColor('black')
+      .moveDown(0.3);
+
+    // WCAG AAA
+    doc
+      .text('WCAG 2.1 AAA: ', { continued: true })
+      .fillColor(accessibility.wcagAAA ? 'green' : 'red')
+      .text(accessibility.wcagAAA ? '✓ Pass' : '✗ Fail')
+      .fillColor('black')
+      .moveDown();
+
+    // Contrast Ratios
+    doc
+      .fontSize(14)
+      .text('Contrast Ratios:')
+      .moveDown(0.5)
+      .fontSize(12);
+
+    Object.entries(accessibility.contrastRatios).forEach(([key, ratio]) => {
+      doc.text(`${key}: ${ratio.toFixed(2)}:1`).moveDown(0.3);
+    });
+
+    doc.addPage();
+  }
+
+  private static addUsageExamplesPage(doc: PDFDocument, iconBuffer: Buffer) {
+    doc
+      .fontSize(24)
+      .font('Helvetica-Bold')
+      .text('Usage Examples')
+      .moveDown();
+
+    // Show icon at different sizes
+    doc
+      .fontSize(12)
+      .font('Helvetica')
+      .text('Icon preview at various sizes:')
+      .moveDown();
+
+    // This would show the icon at different sizes
+    // (Implementation would embed the icon image)
+
+    doc.addPage();
+  }
+
+  private static addSuggestionsPage(
+    doc: PDFDocument,
+    suggestions: DesignSuggestion[]
+  ) {
+    doc
+      .fontSize(24)
+      .font('Helvetica-Bold')
+      .text('Improvement Suggestions')
+      .moveDown();
+
+    if (suggestions.length === 0) {
+      doc
+        .fontSize(14)
+        .font('Helvetica')
+        .text('✓ Your icon meets all design quality standards!');
+      return;
+    }
+
+    suggestions.forEach((suggestion, index) => {
+      doc
+        .fontSize(14)
+        .font('Helvetica-Bold')
+        .text(`${index + 1}. ${suggestion.title}`)
+        .fontSize(12)
+        .font('Helvetica')
+        .text(suggestion.description)
+        .text(`Impact: ${suggestion.impact} | Effort: ${suggestion.effort}`, {
+          oblique: true
+        })
+        .moveDown();
+    });
+  }
+
+  private static getScoreColor(score: number): string {
+    if (score >= 90) return 'green';
+    if (score >= 70) return 'orange';
+    return 'red';
+  }
+
+  private static getPlatformGuidelines(platform: string): Array<{title: string, description: string}> {
+    const guidelines: Record<string, Array<{title: string, description: string}>> = {
+      ios: [
         {
-          src: "android-chrome-192x192.png",
-          sizes: "192x192",
-          type: "image/png"
+          title: 'Clarity',
+          description: 'iOS icons should be instantly recognizable with clear, simple imagery. Avoid overly complex designs that lose clarity at small sizes.'
         },
         {
-          src: "android-chrome-512x512.png",
-          sizes: "512x512",
-          type: "image/png"
-        }
+          title: 'Rounded Corners',
+          description: 'iOS automatically applies rounded corners (22.37% radius). Design your icon as a perfect square - iOS will apply the mask.'
+        },
+        {
+          title: 'Size Range',
+          description: 'Your icon must work at sizes from 20x20 to 1024x1024 pixels. Test at all required sizes.'
+        },
       ],
-      theme_color: options?.themeColor || "#ffffff",
-      background_color: options?.backgroundColor || "#ffffff",
-      display: "standalone"
-    };
-  }
-
-  /**
-   * Generate browserconfig.xml for Windows tiles
-   */
-  private static generateBrowserConfig(options?: {
-    tileColor?: string;
-  }) {
-    const tileColor = options?.tileColor || "#2b5797";
-    
-    return `<?xml version="1.0" encoding="utf-8"?>
-<browserconfig>
-    <msapplication>
-        <tile>
-            <square150x150logo src="mstile-150x150.png"/>
-            <TileColor>${tileColor}</TileColor>
-        </tile>
-    </msapplication>
-</browserconfig>`;
-  }
-}
-```
-
-### 6. ZIP Builder Utility
-
-Create `api/src/utils/zipBuilder.ts`:
-
-```typescript
-import JSZip from 'jszip';
-
-export class ZipBuilder {
-  private zip: JSZip;
-
-  constructor() {
-    this.zip = new JSZip();
-  }
-
-  /**
-   * Add file to ZIP
-   */
-  addFile(path: string, content: Buffer): void {
-    this.zip.file(path, content);
-  }
-
-  /**
-   * Add folder
-   */
-  addFolder(path: string): void {
-    this.zip.folder(path);
-  }
-
-  /**
-   * Build ZIP and return buffer
-   */
-  async build(): Promise<Buffer> {
-    return this.zip.generateAsync({
-      type: 'nodebuffer',
-      compression: 'DEFLATE',
-      compressionOptions: { level: 9 }
-    });
-  }
-
-  /**
-   * Create platform-specific ZIP structure
-   */
-  static async createPlatformPackage(
-    platformFiles: Map<string, Buffer>,
-    platformName: string
-  ): Promise<Buffer> {
-    const builder = new ZipBuilder();
-    
-    // Add all files with platform prefix
-    for (const [path, buffer] of platformFiles.entries()) {
-      builder.addFile(`${platformName}/${path}`, buffer);
-    }
-
-    // Add README
-    const readme = this.generateReadme(platformName);
-    builder.addFile(`${platformName}/README.txt`, Buffer.from(readme));
-
-    return builder.build();
-  }
-
-  /**
-   * Generate README for platform
-   */
-  private static generateReadme(platform: string): string {
-    const readmes: Record<string, string> = {
-      ios: `iOS App Icons
-===============
-
-This package contains all required icon sizes for iOS apps.
-
-INSTALLATION:
-1. Open your Xcode project
-2. Navigate to Assets.xcassets
-3. Right-click and select "Import..." or drag the AppIcon.appiconset folder
-4. Select your target and verify the icons appear correctly
-
-CONTENTS:
-- AppIcon.appiconset/ : Asset catalog with all iOS icon sizes
-- Individual PNG files for manual use
-
-Generated by Icon Generator
-`,
-      android: `Android App Icons
-==================
-
-This package contains all required icon sizes for Android apps.
-
-INSTALLATION:
-1. Open your Android project
-2. Navigate to app/src/main/res/
-3. Copy all mipmap-* folders to the res/ directory
-4. Verify icons appear in your app
-
-CONTENTS:
-- mipmap-mdpi/ through mipmap-xxxhdpi/ : Density-specific icons
-- Adaptive icon layers (if included)
-- Play Store icon (512x512)
-
-Generated by Icon Generator
-`,
-      web: `Web/PWA Icons
-==============
-
-This package contains all required icons for web apps and PWAs.
-
-INSTALLATION:
-1. Copy all files to your web root directory
-2. Add the following to your HTML <head>:
-
-<link rel="icon" type="image/x-icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="manifest" href="/manifest.json">
-
-CONTENTS:
-- favicon.ico : Browser favicon
-- Various PNG sizes for different devices
-- manifest.json : PWA manifest
-- browserconfig.xml : Windows tile configuration
-
-Generated by Icon Generator
-`,
-      macos: `macOS App Icons
-================
-
-This package contains the ICNS file for macOS apps.
-
-INSTALLATION:
-1. Open your Xcode project
-2. Navigate to Assets.xcassets
-3. Drag the .icns file or individual PNG files
-4. Set as AppIcon in your target settings
-
-CONTENTS:
-- AppIcon.icns : Complete icon set
-- Individual PNG files for manual use
-
-Generated by Icon Generator
-`
+      android: [
+        {
+          title: 'Adaptive Icons',
+          description: 'Use 108x108dp canvas with 72x72dp safe zone. Icon should fit within the safe zone to work with all mask shapes.'
+        },
+        {
+          title: 'Material Design',
+          description: 'Follow Material Design 3 principles: bold colors, clear hierarchy, and meaningful motion.'
+        },
+        {
+          title: 'Multiple Densities',
+          description: 'Provide icons for all density buckets (mdpi to xxxhdpi) for crisp rendering on all devices.'
+        },
+      ],
+      web: [
+        {
+          title: 'Favicon Clarity',
+          description: 'Favicons must be recognizable at 16x16 pixels. Use simple, high-contrast designs.'
+        },
+        {
+          title: 'PWA Requirements',
+          description: 'Include 192x192 and 512x512 icons for Progressive Web Apps. Ensure they work on all backgrounds.'
+        },
+      ],
     };
 
-    return readmes[platform] || 'App Icons Package\n\nGenerated by Icon Generator';
+    return guidelines[platform] || [];
   }
 }
-```
-
-### 7. Main Azure Function
-
-Create `api/src/functions/generateAppResources.ts`:
-
-```typescript
-import { app, HttpRequest, HttpResponseInit, InvocationContext } from '@azure/functions';
-import { StorageService } from '../services/storageService';
-import { DatabaseService } from '../services/databaseService';
-import { IOSAssetService } from '../services/iosAssetService';
-import { AndroidAssetService } from '../services/androidAssetService';
-import { WebAssetService } from '../services/webAssetService';
-import { ZipBuilder } from '../utils/zipBuilder';
-import { v4 as uuidv4 } from 'uuid';
-
-interface GenerateAssetsRequest {
-  iconId: string;
-  platforms: ('ios' | 'android' | 'web' | 'macos')[];
-  options?: {
-    includeAdaptiveIcons?: boolean;
-    generateAppIconSet?: boolean;
-    backgroundColor?: string;
-    appName?: string;
-    themeColor?: string;
-  };
-}
-
-export async function generateAppResources(
-  request: HttpRequest,
-  context: InvocationContext
-): Promise<HttpResponseInit> {
-  context.log('Generate app resources function triggered');
-
-  try {
-    const body: GenerateAssetsRequest = await request.json() as GenerateAssetsRequest;
-    const userId = request.headers.get('x-user-id') || 'anonymous';
-
-    // Validate input
-    if (!body.iconId || !body.platforms || body.platforms.length === 0) {
-      return {
-        status: 400,
-        jsonBody: { error: 'iconId and platforms are required' },
-      };
-    }
-
-    // Initialize services
-    const dbService = new DatabaseService();
-    const storageService = new StorageService();
-
-    // Verify icon belongs to user
-    const icon = await dbService.getIconById(body.iconId);
-    if (!icon || icon.userId !== userId) {
-      return {
-        status: 404,
-        jsonBody: { error: 'Icon not found' },
-      };
-    }
-
-    // Download original icon
-    context.log('Downloading original icon...');
-    const iconBuffer = await storageService.downloadImage(icon.imageUrl);
-
-    // Create main ZIP builder
-    const mainZip = new ZipBuilder();
-    let totalAssets = 0;
-
-    // Generate iOS assets
-    if (body.platforms.includes('ios')) {
-      context.log('Generating iOS assets...');
-      const iosAssets = body.options?.generateAppIconSet
-        ? await IOSAssetService.generateAppIconSet(iconBuffer)
-        : await IOSAssetService.generateAssets(iconBuffer);
-      
-      for (const [path, buffer] of iosAssets.files.entries()) {
-        mainZip.addFile(`ios/${path}`, buffer);
-        totalAssets++;
-      }
-      
-      // Add README
-      const iosReadme = this.getReadmeContent('ios');
-      mainZip.addFile('ios/README.txt', Buffer.from(iosReadme));
-    }
-
-    // Generate Android assets
-    if (body.platforms.includes('android')) {
-      context.log('Generating Android assets...');
-      const androidAssets = await AndroidAssetService.generateAssets(iconBuffer, {
-        includeRound: true,
-        includeAdaptive: body.options?.includeAdaptiveIcons ?? true,
-        backgroundColor: body.options?.backgroundColor,
-      });
-      
-      for (const [path, buffer] of androidAssets.files.entries()) {
-        mainZip.addFile(`android/${path}`, buffer);
-        totalAssets++;
-      }
-      
-      const androidReadme = this.getReadmeContent('android');
-      mainZip.addFile('android/README.txt', Buffer.from(androidReadme));
-    }
-
-    // Generate Web assets
-    if (body.platforms.includes('web')) {
-      context.log('Generating Web/PWA assets...');
-      const webAssets = await WebAssetService.generateAssets(iconBuffer, {
-        appName: body.options?.appName,
-        themeColor: body.options?.themeColor,
-        backgroundColor: body.options?.backgroundColor,
-      });
-      
-      for (const [path, buffer] of webAssets.files.entries()) {
-        mainZip.addFile(`web/${path}`, buffer);
-        totalAssets++;
-      }
-      
-      const webReadme = this.getReadmeContent('web');
-      mainZip.addFile('web/README.txt', Buffer.from(webReadme));
-    }
-
-    // Build final ZIP
-    context.log('Building ZIP package...');
-    const zipBuffer = await mainZip.build();
-
-    // Upload ZIP to blob storage
-    const zipId = uuidv4();
-    const zipFileName = `app-resources-${zipId}.zip`;
-    const zipUrl = await storageService.uploadZip(zipBuffer, userId, zipFileName);
-
-    // Save generation record
-    await dbService.saveAssetGeneration({
-      id: zipId,
-      userId,
-      iconId: body.iconId,
-      platforms: body.platforms,
-      zipUrl,
-      fileSize: zipBuffer.length,
-      totalAssets,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-    });
-
-    return {
-      status: 200,
-      jsonBody: {
-        zipUrl,
-        fileSize: zipBuffer.length,
-        totalAssets,
-        platforms: body.platforms,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      },
-    };
-
-  } catch (error: any) {
-    context.error('Error generating app resources:', error);
-    return {
-      status: 500,
-      jsonBody: { error: error.message || 'Internal server error' },
-    };
-  }
-}
-
-function getReadmeContent(platform: string): string {
-  // Implementation from ZipBuilder.generateReadme
-  return `${platform.toUpperCase()} App Icons - Generated by Icon Generator`;
-}
-
-app.http('generateAppResources', {
-  methods: ['POST'],
-  authLevel: 'anonymous',
-  route: 'generate-assets',
-  handler: generateAppResources,
-});
-```
-
-### 8. Install Required Dependencies
-
-```bash
-cd api
-npm install jszip sharp
-npm install --save-dev @types/jszip
 ```
 
 ---
 
 ## Frontend Implementation
 
-### 1. Asset Generator Hook
+### Enhanced Components
 
-Create `frontend/src/hooks/useAssetGeneration.ts`:
+#### 1. Design Analysis Display
+
+Create `frontend/src/components/AssetGenerator/DesignAnalysisCard.tsx`:
 
 ```typescript
-import { useMutation } from '@tanstack/react-query';
-import { apiService } from '../services/api';
+import React from 'react';
+import { AlertCircle, CheckCircle, Info } from 'lucide-react';
 
-export interface GenerateAssetsParams {
-  iconId: string;
-  platforms: ('ios' | 'android' | 'web' | 'macos')[];
-  options?: {
-    includeAdaptiveIcons?: boolean;
-    generateAppIconSet?: boolean;
-    backgroundColor?: string;
-    appName?: string;
-    themeColor?: string;
+interface DesignAnalysisCardProps {
+  analysis: DesignAnalysis;
+}
+
+export function DesignAnalysisCard({ analysis }: DesignAnalysisCardProps) {
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      {/* Overall Score */}
+      <div className="text-center mb-6">
+        <h3 className="text-sm font-medium text-gray-500 mb-2">
+          Design Quality Score
+        </h3>
+        <div className={`
+          text-6xl font-bold
+          ${analysis.score >= 90 ? 'text-green-600' : 
+            analysis.score >= 70 ? 'text-yellow-600' : 
+            'text-red-600'}
+        `}>
+          {analysis.score}
+        </div>
+        <p className="text-sm text-gray-500 mt-2">out of 100</p>
+      </div>
+
+      {/* Score Breakdown */}
+      <div className="space-y-3 mb-6">
+        <h4 className="font-medium text-sm text-gray-700">Score Breakdown</h4>
+        
+        {[
+          { name: 'Clarity', score: analysis.quality.clarity },
+          { name: 'Contrast', score: analysis.quality.contrast },
+          { name: 'Scalability', score: analysis.quality.scalability },
+          { name: 'Accessibility', score: analysis.accessibility.wcagAA ? 100 : 50 },
+        ].map(metric => (
+          <div key={metric.name} className="flex items-center justify-between">
+            <span className="text-sm text-gray-600">{metric.name}</span>
+            <div className="flex items-center gap-2">
+              <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${
+                    metric.score >= 90 ? 'bg-green-500' :
+                    metric.score >= 70 ? 'bg-yellow-500' :
+                    'bg-red-500'
+                  }`}
+                  style={{ width: `${metric.score}%` }}
+                />
+              </div>
+              <span className="text-sm font-medium w-12 text-right">
+                {metric.score}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Issues */}
+      {analysis.issues && analysis.issues.length > 0 && (
+        <div className="mb-6">
+          <h4 className="font-medium text-sm text-gray-700 mb-3 flex items-center gap-2">
+            <AlertCircle size={16} className="text-yellow-600" />
+            Design Issues
+          </h4>
+          <div className="space-y-2">
+            {analysis.issues.map((issue, i) => (
+              <div
+                key={i}
+                className={`
+                  p-3 rounded-lg text-sm
+                  ${issue.severity === 'critical' ? 'bg-red-50 border border-red-200' :
+                    issue.severity === 'warning' ? 'bg-yellow-50 border border-yellow-200' :
+                    'bg-blue-50 border border-blue-200'}
+                `}
+              >
+                <p className="font-medium mb-1">{issue.message}</p>
+                <p className="text-xs text-gray-600">{issue.fix}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Suggestions */}
+      {analysis.suggestions && analysis.suggestions.length > 0 && (
+        <div>
+          <h4 className="font-medium text-sm text-gray-700 mb-3 flex items-center gap-2">
+            <Info size={16} className="text-blue-600" />
+            Improvement Suggestions
+          </h4>
+          <div className="space-y-2">
+            {analysis.suggestions.map((suggestion, i) => (
+              <div
+                key={i}
+                className="p-3 bg-gray-50 rounded-lg text-sm border border-gray-200"
+              >
+                <p className="font-medium mb-1">{suggestion.title}</p>
+                <p className="text-xs text-gray-600 mb-2">
+                  {suggestion.description}
+                </p>
+                <div className="flex gap-2 text-xs">
+                  <span className={`
+                    px-2 py-1 rounded
+                    ${suggestion.impact === 'high' ? 'bg-red-100 text-red-700' :
+                      suggestion.impact === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-green-100 text-green-700'}
+                  `}>
+                    {suggestion.impact} impact
+                  </span>
+                  <span className="px-2 py-1 rounded bg-blue-100 text-blue-700">
+                    {suggestion.effort} effort
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* All Good */}
+      {(!analysis.issues || analysis.issues.length === 0) &&
+       (!analysis.suggestions || analysis.suggestions.length === 0) && (
+        <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg">
+          <CheckCircle size={20} />
+          <span className="text-sm font-medium">
+            Your icon meets all design quality standards!
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+#### 2. Color Palette Display
+
+Create `frontend/src/components/AssetGenerator/ColorPaletteCard.tsx`:
+
+```typescript
+import React from 'react';
+import { Copy, Check } from 'lucide-react';
+
+interface ColorPaletteCardProps {
+  colors: ColorPalette;
+}
+
+export function ColorPaletteCard({ colors }: ColorPaletteCardProps) {
+  const [copiedColor, setCopiedColor] = React.useState<string | null>(null);
+
+  const copyColor = (color: string) => {
+    navigator.clipboard.writeText(color);
+    setCopiedColor(color);
+    setTimeout(() => setCopiedColor(null), 2000);
   };
-}
 
-export function useAssetGeneration() {
-  return useMutation({
-    mutationFn: (params: GenerateAssetsParams) => 
-      apiService.generateAppResources(params),
-    onSuccess: (data) => {
-      // Download will be handled by component
-      console.log('Assets generated:', data);
-    },
-  });
+  const colorSwatches = [
+    { name: 'Vibrant', color: colors.vibrant },
+    { name: 'Dominant', color: colors.dominant },
+    { name: 'Dark Vibrant', color: colors.darkVibrant },
+    { name: 'Light Vibrant', color: colors.lightVibrant },
+    { name: 'Muted', color: colors.muted },
+    { name: 'Dark Muted', color: colors.darkMuted },
+  ];
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6">
+      <h3 className="font-medium text-gray-900 mb-4">Extracted Color Palette</h3>
+      
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {colorSwatches.map(swatch => (
+          <div key={swatch.name} className="flex flex-col">
+            <div
+              className="h-24 rounded-lg border border-gray-200 cursor-pointer hover:scale-105 transition-transform"
+              style={{ backgroundColor: swatch.color }}
+              onClick={() => copyColor(swatch.color)}
+            />
+            <div className="mt-2">
+              <p className="text-xs font-medium text-gray-700">
+                {swatch.name}
+              </p>
+              <button
+                onClick={() => copyColor(swatch.color)}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 mt-1"
+              >
+                {copiedColor === swatch.color ? (
+                  <>
+                    <Check size={12} className="text-green-600" />
+                    <span className="text-green-600">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={12} />
+                    <span>{swatch.color}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Material You Scheme */}
+      {colors.materialYou && (
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">
+            Material You Color Scheme
+          </h4>
+          <div className="grid grid-cols-4 gap-2">
+            {Object.entries(colors.materialYou).map(([name, color]) => (
+              <div
+                key={name}
+                className="h-12 rounded border border-gray-200 flex items-center justify-center text-xs font-medium cursor-pointer hover:scale-105 transition-transform"
+                style={{
+                  backgroundColor: color,
+                  color: name.startsWith('on') ? '#000' : '#fff'
+                }}
+                onClick={() => copyColor(color)}
+                title={`${name}: ${color}`}
+              >
+                {name}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 ```
 
-### 2. API Service Extension
+#### 3. Enhanced Asset Generator Modal
 
-Update `frontend/src/services/api.ts`:
-
-```typescript
-// Add to ApiService class
-
-async generateAppResources(params: {
-  iconId: string;
-  platforms: string[];
-  options?: any;
-}) {
-  const { data } = await this.client.post('/generate-assets', params);
-  return data;
-}
-```
-
-### 3. Asset Generator Component
-
-Create `frontend/src/components/AssetGenerator/AssetGenerator.tsx`:
+Update `frontend/src/components/AssetGenerator/AssetGenerator.tsx`:
 
 ```typescript
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAssetGeneration } from '../../hooks/useAssetGeneration';
 import { PlatformSelector } from './PlatformSelector';
 import { AssetOptions } from './AssetOptions';
-import { Download, Loader2 } from 'lucide-react';
+import { DesignAnalysisCard } from './DesignAnalysisCard';
+import { ColorPaletteCard } from './ColorPaletteCard';
+import { Download, Loader2, FileText } from 'lucide-react';
 
 interface AssetGeneratorProps {
   iconId: string;
@@ -1286,12 +1803,28 @@ export function AssetGenerator({ iconId, iconUrl, onClose }: AssetGeneratorProps
   const [options, setOptions] = useState({
     includeAdaptiveIcons: true,
     generateAppIconSet: true,
+    optimizeForClarity: true,
+    generateDarkMode: false,
+    generateMaterialYou: true,
     backgroundColor: '#FFFFFF',
     appName: 'My App',
     themeColor: '#000000',
   });
 
-  const { mutate: generate, isPending, data } = useAssetGeneration();
+  const { mutate: generate, isPending, data, error } = useAssetGeneration();
+  const [analysis, setAnalysis] = useState<DesignAnalysis | null>(null);
+
+  // Analyze icon when modal opens
+  useEffect(() => {
+    analyzeIcon(iconId);
+  }, [iconId]);
+
+  const analyzeIcon = async (id: string) => {
+    // Call analysis endpoint
+    const response = await fetch(`/api/analyze-icon/${id}`);
+    const data = await response.json();
+    setAnalysis(data);
+  };
 
   const handleGenerate = () => {
     generate({
@@ -1301,289 +1834,138 @@ export function AssetGenerator({ iconId, iconUrl, onClose }: AssetGeneratorProps
     });
   };
 
-  const handleDownload = () => {
-    if (data?.zipUrl) {
-      window.open(data.zipUrl, '_blank');
-    }
+  const handleDownload = (type: 'zip' | 'guide') => {
+    if (!data) return;
+    
+    const url = type === 'zip' ? data.zipUrl : data.designGuideUrl;
+    window.open(url, '_blank');
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-50 rounded-lg max-w-5xl w-full max-h-[95vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
           <h2 className="text-2xl font-bold">Generate App Resources</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
           >
             ✕
           </button>
         </div>
 
-        {/* Icon Preview */}
-        <div className="mb-6">
-          <img
-            src={iconUrl}
-            alt="Icon preview"
-            className="w-24 h-24 rounded-lg shadow-md mx-auto"
-          />
-        </div>
+        <div className="p-6 space-y-6">
+          {/* Icon Preview */}
+          <div className="flex justify-center">
+            <img
+              src={iconUrl}
+              alt="Icon preview"
+              className="w-32 h-32 rounded-2xl shadow-lg"
+            />
+          </div>
 
-        {/* Platform Selection */}
-        <PlatformSelector
-          selected={selectedPlatforms}
-          onChange={setSelectedPlatforms}
-        />
-
-        {/* Options */}
-        <AssetOptions
-          platforms={selectedPlatforms}
-          options={options}
-          onChange={setOptions}
-        />
-
-        {/* Action Buttons */}
-        <div className="mt-6 space-y-3">
-          {!data ? (
-            <button
-              onClick={handleGenerate}
-              disabled={isPending || selectedPlatforms.length === 0}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold
-                       hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed
-                       transition-colors flex items-center justify-center gap-2"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="animate-spin" size={20} />
-                  Generating Assets...
-                </>
-              ) : (
-                'Generate Assets'
-              )}
-            </button>
-          ) : (
-            <div className="space-y-3">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <p className="text-green-800 font-medium mb-2">
-                  ✓ Assets generated successfully!
-                </p>
-                <p className="text-sm text-green-700">
-                  {data.totalAssets} assets across {data.platforms.length} platform(s)
-                </p>
-                <p className="text-xs text-green-600 mt-1">
-                  File size: {(data.fileSize / 1024).toFixed(0)} KB
-                </p>
-              </div>
-
-              <button
-                onClick={handleDownload}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold
-                         hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-              >
-                <Download size={20} />
-                Download ZIP Package
-              </button>
-
-              <p className="text-xs text-center text-gray-500">
-                Download link expires in 7 days
-              </p>
-            </div>
+          {/* Design Analysis */}
+          {analysis && (
+            <>
+              <DesignAnalysisCard analysis={analysis} />
+              <ColorPaletteCard colors={analysis.colors} />
+            </>
           )}
-        </div>
-      </div>
-    </div>
-  );
-}
-```
 
-### 4. Platform Selector Component
+          {/* Platform Selection */}
+          <PlatformSelector
+            selected={selectedPlatforms}
+            onChange={setSelectedPlatforms}
+          />
 
-Create `frontend/src/components/AssetGenerator/PlatformSelector.tsx`:
+          {/* Enhanced Options */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="font-medium text-gray-900 mb-4">
+              Design Options
+            </h3>
+            <AssetOptions
+              platforms={selectedPlatforms}
+              options={options}
+              onChange={setOptions}
+              analysis={analysis}
+            />
+          </div>
 
-```typescript
-import React from 'react';
-import { Apple, Smartphone, Globe, Laptop } from 'lucide-react';
+          {/* Action Buttons */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            {!data ? (
+              <button
+                onClick={handleGenerate}
+                disabled={isPending || selectedPlatforms.length === 0}
+                className="w-full bg-blue-600 text-white py-4 rounded-lg font-semibold
+                         hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed
+                         transition-colors flex items-center justify-center gap-2 text-lg"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="animate-spin" size={24} />
+                    Generating Beautiful Assets...
+                  </>
+                ) : (
+                  'Generate App Resources'
+                )}
+              </button>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-green-800 font-medium mb-2">
+                    ✓ Assets generated successfully!
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 text-sm text-green-700">
+                    <div>
+                      <span className="font-medium">{data.totalAssets}</span> assets
+                    </div>
+                    <div>
+                      <span className="font-medium">{data.platforms.length}</span> platforms
+                    </div>
+                    <div>
+                      <span className="font-medium">{(data.fileSize / 1024).toFixed(0)}</span> KB
+                    </div>
+                    <div>
+                      Design Score: <span className="font-medium">{data.designScore}/100</span>
+                    </div>
+                  </div>
+                </div>
 
-interface Platform {
-  id: string;
-  name: string;
-  icon: React.ReactNode;
-  description: string;
-}
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => handleDownload('zip')}
+                    className="bg-blue-600 text-white py-3 rounded-lg font-semibold
+                             hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Download size={20} />
+                    Download Assets
+                  </button>
 
-const PLATFORMS: Platform[] = [
-  {
-    id: 'ios',
-    name: 'iOS',
-    icon: <Apple size={24} />,
-    description: 'iPhone, iPad, App Store',
-  },
-  {
-    id: 'android',
-    name: 'Android',
-    icon: <Smartphone size={24} />,
-    description: 'All densities, Play Store',
-  },
-  {
-    id: 'web',
-    name: 'Web/PWA',
-    icon: <Globe size={24} />,
-    description: 'Favicon, manifest, tiles',
-  },
-  {
-    id: 'macos',
-    name: 'macOS',
-    icon: <Laptop size={24} />,
-    description: 'ICNS, all sizes',
-  },
-];
+                  <button
+                    onClick={() => handleDownload('guide')}
+                    className="bg-purple-600 text-white py-3 rounded-lg font-semibold
+                             hover:bg-purple-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FileText size={20} />
+                    Design Guide PDF
+                  </button>
+                </div>
 
-interface PlatformSelectorProps {
-  selected: string[];
-  onChange: (platforms: string[]) => void;
-}
-
-export function PlatformSelector({ selected, onChange }: PlatformSelectorProps) {
-  const togglePlatform = (platformId: string) => {
-    if (selected.includes(platformId)) {
-      onChange(selected.filter(id => id !== platformId));
-    } else {
-      onChange([...selected, platformId]);
-    }
-  };
-
-  return (
-    <div className="mb-6">
-      <label className="block text-sm font-medium mb-3">
-        Select Platforms
-      </label>
-      <div className="grid grid-cols-2 gap-3">
-        {PLATFORMS.map((platform) => (
-          <button
-            key={platform.id}
-            onClick={() => togglePlatform(platform.id)}
-            className={`
-              p-4 rounded-lg border-2 transition-all text-left
-              ${selected.includes(platform.id)
-                ? 'border-blue-600 bg-blue-50'
-                : 'border-gray-200 hover:border-gray-300'
-              }
-            `}
-          >
-            <div className="flex items-start gap-3">
-              <div className={`
-                ${selected.includes(platform.id) ? 'text-blue-600' : 'text-gray-400'}
-              `}>
-                {platform.icon}
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-gray-900">{platform.name}</p>
-                <p className="text-xs text-gray-600 mt-1">
-                  {platform.description}
+                <p className="text-xs text-center text-gray-500">
+                  Downloads expire in 7 days
                 </p>
               </div>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-```
+            )}
 
-### 5. Asset Options Component
-
-Create `frontend/src/components/AssetGenerator/AssetOptions.tsx`:
-
-```typescript
-import React from 'react';
-
-interface AssetOptionsProps {
-  platforms: string[];
-  options: any;
-  onChange: (options: any) => void;
-}
-
-export function AssetOptions({ platforms, options, onChange }: AssetOptionsProps) {
-  const hasAndroid = platforms.includes('android');
-  const hasIOS = platforms.includes('ios');
-  const hasWeb = platforms.includes('web');
-
-  return (
-    <div className="space-y-4">
-      <h3 className="text-sm font-medium">Options</h3>
-
-      {/* Android Options */}
-      {hasAndroid && (
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={options.includeAdaptiveIcons}
-            onChange={(e) => onChange({
-              ...options,
-              includeAdaptiveIcons: e.target.checked
-            })}
-            className="rounded"
-          />
-          <span className="text-sm">Include Android Adaptive Icons</span>
-        </label>
-      )}
-
-      {/* iOS Options */}
-      {hasIOS && (
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={options.generateAppIconSet}
-            onChange={(e) => onChange({
-              ...options,
-              generateAppIconSet: e.target.checked
-            })}
-            className="rounded"
-          />
-          <span className="text-sm">Generate iOS Asset Catalog</span>
-        </label>
-      )}
-
-      {/* Web Options */}
-      {hasWeb && (
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm mb-1">App Name</label>
-            <input
-              type="text"
-              value={options.appName}
-              onChange={(e) => onChange({ ...options, appName: e.target.value })}
-              className="w-full px-3 py-2 border rounded-lg"
-              placeholder="My App"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm mb-1">Theme Color</label>
-            <input
-              type="color"
-              value={options.themeColor}
-              onChange={(e) => onChange({ ...options, themeColor: e.target.value })}
-              className="w-full h-10 rounded-lg"
-            />
+            {error && (
+              <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm">
+                Error: {error.message}
+              </div>
+            )}
           </div>
         </div>
-      )}
-
-      {/* Background Color (for all platforms) */}
-      <div>
-        <label className="block text-sm mb-1">Background Color</label>
-        <input
-          type="color"
-          value={options.backgroundColor}
-          onChange={(e) => onChange({ ...options, backgroundColor: e.target.value })}
-          className="w-full h-10 rounded-lg"
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          Used for adaptive icons and transparent backgrounds
-        </p>
       </div>
     </div>
   );
@@ -1592,201 +1974,174 @@ export function AssetOptions({ platforms, options, onChange }: AssetOptionsProps
 
 ---
 
-## Testing
+## Design Best Practices
 
-### Unit Tests
+### iOS Design Principles
 
-Create `api/src/__tests__/assetGeneration.test.ts`:
+Use typography to guide focus with Apple's system font, SF Pro, using various weights and sizes to establish clear visual hierarchy.
 
-```typescript
-import { IOSAssetService } from '../services/iosAssetService';
-import { AndroidAssetService } from '../services/androidAssetService';
-import fs from 'fs';
-import path from 'path';
+**Key iOS Principles:**
 
-describe('Asset Generation', () => {
-  const testIconPath = path.join(__dirname, 'fixtures', 'test-icon.png');
-  let testIconBuffer: Buffer;
+1. **Clarity Through Simplicity**
+   - Minimalist design avoids clutter by focusing on essential elements and using ample white space
+   - Single focal point per icon
+   - High contrast ratios (4.5:1 minimum)
 
-  beforeAll(() => {
-    testIconBuffer = fs.readFileSync(testIconPath);
-  });
+2. **Depth and Layering**
+   - Depth is achieved through layering, shadows, and visual effects
+   - Subtle shadows for elevation
+   - Translucent elements where appropriate
 
-  test('iOS generates all required sizes', async () => {
-    const result = await IOSAssetService.generateAssets(testIconBuffer);
-    
-    expect(result.files.size).toBeGreaterThan(10);
-    expect(result.files.has('icon-1024.png')).toBe(true);
-  });
+3. **Touch Targets**
+   - Touch targets above 44x44 points prevent missed or incorrect taps by more than 25% of users
+   - Adequate spacing between interactive elements
 
-  test('Android generates adaptive icons', async () => {
-    const result = await AndroidAssetService.generateAssets(testIconBuffer, {
-      includeAdaptive: true,
-      backgroundColor: '#FF0000',
-    });
-    
-    expect(result.files.has('mipmap-xxxhdpi/ic_launcher_foreground.png')).toBe(true);
-    expect(result.files.has('mipmap-xxxhdpi/ic_launcher_background.png')).toBe(true);
-  });
-});
-```
+### Material Design Principles
 
-### Integration Testing
+Material 3's dynamic color adapts to user wallpaper and personal style.
 
-```bash
-# Test the complete flow
-curl -X POST http://localhost:7071/api/generate-assets \
-  -H "Content-Type: application/json" \
-  -H "x-user-id: test-user-123" \
-  -d '{
-    "iconId": "test-icon-id",
-    "platforms": ["ios", "android", "web"],
-    "options": {
-      "includeAdaptiveIcons": true,
-      "generateAppIconSet": true,
-      "backgroundColor": "#FFFFFF"
-    }
-  }'
-```
+**Key Android Principles:**
 
----
+1. **Bold and Intentional**
+   - Using bold colors, typography, and imagery helps create clear and engaging design
+   - Strong visual hierarchy
+   - Purpose-driven color choices
 
-## Deployment
+2. **Material as Metaphor**
+   - Surfaces and edges behave like physical materials with depth and shadow
+   - Realistic motion and interactions
 
-### Environment Variables
+3. **Adaptive Design**
+   - 73% of users prefer apps that feel personalized to their device
+   - Dynamic color schemes
+   - Responsive layouts
 
-Add to Azure Static Web App configuration:
+### Modern UI/UX Trends
 
-```bash
-# No additional environment variables needed
-# Uses existing storage and database connections
-```
+**Trends to Incorporate:**
 
-### Deploy Updates
+1. **Dark Mode**
+   - Reduce eye strain in low-light environments
+   - Save battery on OLED screens
+   - Provide modern, premium aesthetic
 
-```bash
-git add .
-git commit -m "Add Phase 2: App Resources Generator"
-git push origin main
-```
+2. **Micro-interactions**
+   - Provide immediate visual feedback
+   - Guide user attention
+   - Create delightful experiences
 
----
+3. **Accessibility First**
+   - Design for all users from the start
+   - WCAG 2.1 AA compliance minimum
+   - Colorblind-safe palettes
 
-## User Experience
-
-### User Flow
-
-1. **User generates icon** (Phase 1)
-2. **User views generated icon**
-3. **User clicks "Export Assets" button**
-4. **Modal opens** with platform selection
-5. **User selects platforms** (iOS, Android, Web, macOS)
-6. **User configures options** (adaptive icons, colors, etc.)
-7. **User clicks "Generate Assets"**
-8. **System generates** all required sizes (~10-30 seconds)
-9. **Download button appears**
-10. **User downloads ZIP** containing organized folders
-11. **User extracts and imports** into their project
-
-### Expected Performance
-
-- **iOS generation**: 3-5 seconds (13 files)
-- **Android generation**: 5-7 seconds (15+ files)
-- **Web generation**: 2-3 seconds (7 files)
-- **Complete package**: 10-15 seconds total
-- **ZIP file size**: 500KB - 2MB
+4. **Cross-Platform Consistency**
+   - Unified brand experience
+   - Platform-appropriate adaptations
+   - Seamless transitions
 
 ---
 
 ## Appendix
 
-### A. Complete Icon Size Reference
+### A. Design Quality Checklist
 
-See detailed tables in [Platform Requirements](#platform-requirements) section.
+#### iOS Checklist
+- [ ] Icon recognizable at 40x40 pixels
+- [ ] Works on all wallpaper colors
+- [ ] Clear at 1024x1024 (App Store)
+- [ ] Single focal element
+- [ ] High contrast (4.5:1+)
+- [ ] No text (except logos)
+- [ ] Vibrant colors
+- [ ] 8pt grid alignment
+- [ ] No iOS-style rounded corners (system applies)
 
-### B. Folder Structure Example
+#### Android Checklist
+- [ ] Foreground fits 72dp safe zone
+- [ ] Works with all mask shapes
+- [ ] Background complements foreground
+- [ ] High-res Play Store icon (512px)
+- [ ] All densities provided (mdpi-xxxhdpi)
+- [ ] Adaptive icon layers separate
+- [ ] Material Design 3 compliant
+- [ ] Dynamic color compatible
 
-```
-app-resources.zip
-├── ios/
-│   ├── AppIcon.appiconset/
-│   │   ├── Contents.json
-│   │   ├── icon-20x20@2x.png
-│   │   ├── icon-20x20@3x.png
-│   │   └── ... (all iOS sizes)
-│   └── README.txt
-├── android/
-│   ├── mipmap-mdpi/
-│   │   ├── ic_launcher.png
-│   │   └── ic_launcher_round.png
-│   ├── mipmap-hdpi/
-│   ├── mipmap-xhdpi/
-│   ├── mipmap-xxhdpi/
-│   ├── mipmap-xxxhdpi/
-│   ├── mipmap-anydpi-v26/
-│   │   ├── ic_launcher.xml
-│   │   └── ic_launcher_round.xml
-│   ├── playstore-icon.png
-│   └── README.txt
-├── web/
-│   ├── favicon.ico
-│   ├── favicon-16x16.png
-│   ├── favicon-32x32.png
-│   ├── apple-touch-icon.png
-│   ├── android-chrome-192x192.png
-│   ├── android-chrome-512x512.png
-│   ├── manifest.json
-│   ├── browserconfig.xml
-│   └── README.txt
-└── macos/
-    ├── AppIcon.icns
-    └── README.txt
-```
+#### Web Checklist
+- [ ] 16x16 favicon clear and recognizable
+- [ ] 192x192 and 512x512 for PWA
+- [ ] manifest.json configured
+- [ ] Apple Touch Icon (180x180)
+- [ ] Works on browser chrome
+- [ ] browserconfig.xml for Windows
 
-### C. Testing Checklist
+### B. Color Accessibility Matrix
 
-- [ ] iOS icons import into Xcode without errors
-- [ ] Android icons display correctly in Android Studio
-- [ ] Web favicons appear in browsers
-- [ ] Adaptive icons display properly on Android 8+
-- [ ] Asset catalog Contents.json validates
-- [ ] ZIP extracts without corruption
-- [ ] All README files are readable
-- [ ] File sizes are optimized
-- [ ] Background colors apply correctly
-- [ ] Round icons are properly circular
+| Contrast Ratio | WCAG Level | Use Case |
+|----------------|------------|----------|
+| 3:1 | AA (Large Text) | Headings 18pt+ or 14pt+ bold |
+| 4.5:1 | AA (Normal Text) | Body text, UI elements |
+| 7:1 | AAA (Enhanced) | Maximum accessibility |
 
-### D. Performance Optimization Tips
+### C. Platform Size Reference
 
-1. **Cache processed images**: Store common sizes
-2. **Parallel processing**: Generate multiple sizes concurrently
-3. **Optimize Sharp settings**: Use appropriate quality levels
-4. **Stream ZIP creation**: Don't load entire ZIP in memory
-5. **Use CDN**: Serve ZIPs through Azure CDN
+**Complete size breakdown available in main Phase 2 document**
 
-### E. Future Enhancements
+### D. Design Resources
 
-- **Custom size generator**: Let users specify exact dimensions
-- **Preview mode**: Show all sizes before downloading
-- **Batch processing**: Generate assets for multiple icons
-- **Style variations**: Apply filters or effects
-- **SVG support**: Accept SVG as input
-- **Direct Xcode/Android Studio export**: IDE integrations
+- [iOS HIG](https://developer.apple.com/design/human-interface-guidelines/)
+- [Material Design 3](https://m3.material.io/)
+- [WCAG Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [Apple Design Resources](https://developer.apple.com/design/resources/)
+- [Material Design Resources](https://m3.material.io/foundations/layout/applying-layout/window-size-classes)
+
+### E. Testing Recommendations
+
+**Design Testing:**
+- [ ] Test on actual devices
+- [ ] Preview on different wallpapers
+- [ ] Check in light and dark modes
+- [ ] Validate with colorblind simulators
+- [ ] Test at all required sizes
+
+**Technical Testing:**
+- [ ] Validate Contents.json
+- [ ] Check XML configs
+- [ ] Verify file sizes
+- [ ] Test ZIP extraction
+- [ ] Confirm folder structure
+
+### F. Deliverables Comparison
+
+| Deliverable | Basic Generator | Enhanced Generator |
+|-------------|----------------|-------------------|
+| iOS Assets | ✅ 13 sizes | ✅ 13 sizes + quality score |
+| Android Assets | ✅ 15 sizes | ✅ 15 sizes + adaptive optimization |
+| Web Assets | ✅ 7 files | ✅ 7 files + PWA manifest |
+| Design Analysis | ❌ | ✅ Quality score + suggestions |
+| Color Palette | ❌ | ✅ Extracted + Material You |
+| Design Guide PDF | ❌ | ✅ Comprehensive guide |
+| Platform Compliance | ⚠️ Basic | ✅ Full validation |
+| Accessibility Check | ❌ | ✅ WCAG 2.1 validation |
 
 ---
 
 ## Summary
 
-Phase 2 adds significant value by automating the tedious process of creating multiple icon sizes. This feature:
+This enhanced Phase 2 implementation transforms simple icon generation into a comprehensive **design intelligence platform** that:
 
-- **Saves hours** of manual work
-- **Ensures compliance** with platform requirements
-- **Reduces errors** in sizing and formatting
-- **Professional output** with proper folder structure
-- **No additional cost** (uses existing infrastructure)
+✅ **Analyzes Design Quality** - Provides objective scoring and feedback  
+✅ **Ensures Platform Compliance** - Follows iOS HIG and Material Design 3  
+✅ **Optimizes for Accessibility** - WCAG 2.1 AA compliance checking  
+✅ **Generates Beautiful Assets** - Platform-specific optimizations  
+✅ **Provides Design Guidance** - PDF guide with best practices  
+✅ **Extracts Color Schemes** - Material You and iOS dynamic colors  
+✅ **Delivers Professional Results** - App Store/Play Store ready  
 
-**Implementation Time**: 1-2 weeks
+**Implementation Timeline**: 2-3 weeks
 
-**Dependencies**: Phase 1 icon generator must be complete
+**Key Differentiator**: First icon generator with built-in design intelligence and platform compliance validation.
 
-**Ready to implement!** 🚀
+**User Value**: Professional-quality assets that pass app store review and delight users.
+
+🎨 **Ready to build the future of app icon generation!**

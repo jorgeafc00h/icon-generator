@@ -1,10 +1,14 @@
 # Database Options Comparison
 
-## Azure Cosmos DB Free Tier (RECOMMENDED for Dev)
+## Azure Cosmos DB Free Tier (RECOMMENDED ✅)
 
 ### Pricing
-- **FREE TIER**: 1000 RU/s + 25GB storage forever
-- **Limitation**: One free tier per Azure subscription
+- **FREE TIER**: 1000 RU/s + 25GB storage **FOREVER** (not a trial!)
+- **Limitation**: One free tier per Azure subscription (lifetime limit)
+- **What you get FREE:**
+  - 1000 RU/s = ~1 million requests/month
+  - 25GB storage = ~250,000 icon records
+  - No time limit - free forever
 - **Beyond free tier**:
   - Serverless: $0.285 per million RUs
   - Provisioned: Starting at ~$24/month (400 RU/s)
@@ -205,8 +209,16 @@ By default, the infrastructure uses:
 ```
 Environment: dev
 Database: Cosmos DB Free Tier
-Cost: $0/month
+Location: West US 2 (East US had capacity constraints)
+Cost: $0/month FOREVER
+Capacity: 1000 RU/s + 25GB storage
 ```
+
+**Why Cosmos DB Free Tier?**
+- ✅ Completely free (not a trial)
+- ✅ Plenty of capacity for development
+- ✅ Can handle small-to-medium production workloads
+- ✅ Already implemented in codebase (CosmosDbService.cs)
 
 ## Switching Between Options
 

@@ -6,6 +6,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{D82C56D6-B2C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IconGenerator.Functions", "api\IconGenerator.Functions.csproj", "{ECC844B5-9452-8E5B-3BFD-5382CE27E83F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IconGenerator.Tests", "Tests\IconGenerator.Tests.csproj", "{A8F7C3D9-1234-5678-9ABC-DEF012345678}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -16,6 +18,10 @@ Global
 		{ECC844B5-9452-8E5B-3BFD-5382CE27E83F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ECC844B5-9452-8E5B-3BFD-5382CE27E83F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ECC844B5-9452-8E5B-3BFD-5382CE27E83F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8F7C3D9-1234-5678-9ABC-DEF012345678}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8F7C3D9-1234-5678-9ABC-DEF012345678}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8F7C3D9-1234-5678-9ABC-DEF012345678}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8F7C3D9-1234-5678-9ABC-DEF012345678}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

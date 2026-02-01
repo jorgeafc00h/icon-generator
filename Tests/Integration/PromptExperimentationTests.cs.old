@@ -290,7 +290,7 @@ public class PromptExperimentationTests
 /// <summary>
 /// Console runner for quick testing
 /// </summary>
-public class Program
+public class TestRunner
 {
     public static async Task Main(string[] args)
     {

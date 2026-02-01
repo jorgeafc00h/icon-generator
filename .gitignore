@@ -32,6 +32,7 @@ yarn-error.log*
 
 # Azure
 local.settings.json
+azure-credentials.env
 __blobstorage__/
 __queuestorage__/
 __azurite_db*__.json
@@ -48,3 +49,33 @@ logs/
 .cache/
 .temp/
 tmp/
+
+# .NET / C#
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.user
+*.suo
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.mdb
+*.opendb
+*.VC.db
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/

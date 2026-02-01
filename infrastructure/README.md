@@ -1,265 +1,264 @@
-# Infrastructure as Code - Icon Generator
+# Azure Infrastructure Provisioning
 
-This directory contains Bicep templates for deploying the Icon Generator platform infrastructure to Azure.
+Automated provisioning for Icon Generator Azure resources.
 
-## Architecture Overview
+## 📋 Your Subscription Details
 
-The infrastructure includes:
+- **Subscription Name:** Azure Sponsorship PROD
+- **Subscription ID:** `5fddbeee-d040-44ad-a7a0-a526d45d98a2`
+- **OpenAI/Storage Region:** East US
+- **Cosmos DB Region:** West US 2 (avoiding East US capacity constraints)
+- **Cosmos DB:** FREE TIER ($0/month forever - 1000 RU/s + 25GB)
+- **Models:** DALL-E 3 + GPT-4o-mini
 
-- **Azure Static Web Apps** - Hosts the React frontend
-- **Azure Functions** - Serverless backend API (Node.js 18)
-- **Azure OpenAI** - DALL-E 3 and GPT-4o-mini deployments
-- **Cosmos DB** - NoSQL database for user data and icon history
-- **Blob Storage** - Store generated icons and app resources
-- **Application Insights** - Monitoring and telemetry
-- **Log Analytics** - Centralized logging
-- **Key Vault** - Secrets management
+## 🚀 Quick Provision (One Command)
 
-## Directory Structure
+```bash
+cd /Users/jorgeflores/github/icon-generator/infrastructure
+./provision-azure-resources.sh
+```
+
+**Time:** 10-15 minutes
+**Cost:** ~$5-10/month (Cosmos DB is FREE!)
+
+The script will:
+1. ✅ Set your Azure subscription
+2. ✅ Create resource group
+3. ✅ Create Azure OpenAI service
+4. ✅ Deploy DALL-E 3 model
+5. ✅ Deploy GPT-4o-mini model (for prompt enhancement)
+6. ✅ Create Storage Account with blob container
+7. ✅ Create Cosmos DB (FREE TIER) with all containers
+8. ✅ Generate credentials files automatically
+
+## 📦 What Gets Created
+
+### Resource Group
+- **Name:** `rg-icon-generator`
+- **Location:** `eastus`
+
+### Azure OpenAI Service
+- **Name:** `openai-icon-generator` (static name)
+- **Location:** East US
+- **SKU:** S0 (Standard)
+- **Models:**
+  - **DALL-E 3** - Image generation
+    - Deployment: `dall-e-3`
+    - Version: 3.0
+    - Capacity: 1 unit
+  - **GPT-4o-mini** - Prompt enhancement
+    - Deployment: `gpt-4o-mini`
+    - Version: 2024-07-18 (July 2024 release)
+    - Capacity: 10K tokens/min
+    - Cost: ~$0.15 per 1M input tokens (75% cheaper than GPT-4)
+
+### Cosmos DB (FREE TIER)
+- **Name:** `cosmos-icon-generator` (static name)
+- **Location:** West US 2
+- **Tier:** FREE TIER ($0/month forever)
+- **Capacity:** 1000 RU/s + 25GB storage
+- **Database:** `IconGeneratorDB`
+- **Containers:**
+  - `Users` (partition: `/id`, 400 RU/s)
+  - `Icons` (partition: `/userId`, 400 RU/s)
+  - `Assets` (partition: `/userId`, 400 RU/s)
+  - `Transactions` (partition: `/userId`, 400 RU/s)
+
+### Storage Account
+- **Name:** `sticongen` (static name)
+- **Location:** East US
+- **SKU:** Standard_LRS
+- **Container:** `generated-icons` (public blob access)
+
+## 📄 Generated Files
+
+After provisioning, you'll get:
 
 ```
 infrastructure/
-├── main.bicep                      # Main orchestration template
-├── parameters.dev.json             # Dev environment parameters
-├── parameters.staging.json         # Staging environment parameters
-├── parameters.main.json            # Production environment parameters
-└── modules/
-    ├── storage-account.bicep       # Blob storage configuration
-    ├── cosmos-db.bicep             # Cosmos DB account
-    ├── cognitive-services.bicep    # Azure OpenAI service
-    ├── app-service-plan.bicep      # Function App hosting plan
-    ├── function-app.bicep          # Azure Functions configuration
-    ├── static-web-app.bicep        # Static Web App for React
-    ├── log-analytics.bicep         # Log Analytics workspace
-    ├── app-insights.bicep          # Application Insights
-    └── key-vault.bicep             # Key Vault for secrets
+├── azure-credentials.env         ← All your credentials
+├── provision-azure-resources.sh  ← Provisioning script
+
+api/
+├── local.settings.json           ← Function app configuration
+└── Tests/
+    └── .env                      ← Test environment variables
 ```
 
-## Prerequisites
+## 🔐 Credentials File Structure
 
-1. **Azure CLI** installed and authenticated
-   ```bash
-   az login
-   az account set --subscription "YOUR_SUBSCRIPTION_ID"
-   ```
-
-2. **Azure DevOps** service connection configured
-   - Create a service principal with Contributor role
-   - Add service connection in Azure DevOps Project Settings
-
-3. **Variable Group** in Azure DevOps Library named `icon-generator-variables`:
-   ```
-   AZURE_OPENAI_API_KEY
-   STRIPE_SECRET_KEY
-   VITE_STRIPE_PUBLISHABLE_KEY
-   VITE_API_BASE_URL
-   subscriptionId
-   ```
-
-## Local Deployment
-
-### Validate Templates
-
+`azure-credentials.env`:
 ```bash
-# Validate for dev environment
-az deployment group validate \
+# Azure OpenAI
+AZURE_OPENAI_ENDPOINT=https://openai-icon-gen-xxxxx.openai.azure.com/
+AZURE_OPENAI_API_KEY=abc123...
+DALLE3_DEPLOYMENT_NAME=dall-e-3
+GPT4O_MINI_DEPLOYMENT_NAME=gpt-4o-mini
+
+# Cosmos DB (FREE TIER)
+COSMOS_ENDPOINT=https://cosmos-icon-gen-xxxxx.documents.azure.com:443/
+COSMOS_KEY=xyz789...
+COSMOS_DATABASE=IconGeneratorDB
+
+# Storage
+STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;...
+STORAGE_CONTAINER_NAME=generated-icons
+
+# Resource Names
+RESOURCE_GROUP=rg-icon-generator
+LOCATION=eastus
+```
+
+## ✅ Verification Steps
+
+### 1. Check Resources in Portal
+```bash
+# List all resources
+az resource list \
   --resource-group rg-icon-generator \
-  --template-file ./main.bicep \
-  --parameters ./parameters.dev.json
+  --output table
 ```
 
-### Deploy Infrastructure
+### 2. Verify OpenAI Deployments
+```bash
+# Find your OpenAI resource name from azure-credentials.env
+source azure-credentials.env
+
+# List deployments
+az cognitiveservices account deployment list \
+  --name $OPENAI_RESOURCE_NAME \
+  --resource-group rg-icon-generator \
+  --output table
+```
+
+Expected output:
+```
+Name          Model         Version      ProvisioningState
+------------  ------------  -----------  ------------------
+dall-e-3      dall-e-3      3.0          Succeeded
+gpt-4o-mini   gpt-4o-mini   2024-07-18   Succeeded
+```
+
+### 3. Verify Cosmos DB Containers
+```bash
+# List containers
+az cosmosdb sql container list \
+  --account-name $COSMOS_ACCOUNT_NAME \
+  --resource-group rg-icon-generator \
+  --database-name IconGeneratorDB \
+  --output table
+```
+
+Expected: Users, Icons, Assets, Transactions
+
+### 4. Test in Azure AI Foundry Portal
+
+1. Go to https://ai.azure.com
+2. Sign in with your Azure account
+3. Select your project (or create one)
+4. Click "Deployments" - you should see:
+   - ✅ dall-e-3 (Succeeded)
+   - ✅ gpt-4o-mini (Succeeded)
+5. Test in Playground:
+   - **Images:** Select dall-e-3, generate test image
+   - **Chat:** Select gpt-4o-mini, send test message
+
+## 🧪 Test Your Setup
 
 ```bash
-# Create resource group
+# 1. Load credentials
+cd /Users/jorgeflores/github/icon-generator/api/Tests
+source .env
+
+# 2. Build tests
+dotnet build
+
+# 3. Run integration tests
+dotnet run
+
+# 4. Select test #1 (Style Variations)
+# This will use GPT-4o-mini to enhance prompts
+```
+
+**Cost:** ~$0.001 for first test
+
+## 💰 Cost Breakdown
+
+### Monthly Costs (Development Usage)
+
+| Service | Usage | Cost |
+|---------|-------|------|
+| **Cosmos DB** | FREE TIER | **$0** |
+| **Storage** | 5GB, minimal transactions | ~$1-2 |
+| **Azure OpenAI** | Pay per use | |
+| - GPT-4o-mini | ~100K tokens/month | ~$0.015 |
+| - DALL-E 3 | ~100 images/month | ~$4 |
+| **Total** | | **~$5-7/month** |
+
+### Production Costs (1000 icons/month)
+
+| Service | Usage | Cost |
+|---------|-------|------|
+| **Cosmos DB** | Need to scale beyond free tier | ~$25 |
+| **Storage** | 50GB + CDN | ~$5 |
+| **Azure OpenAI** | | |
+| - GPT-4o-mini | ~1M tokens | ~$0.15 |
+| - DALL-E 3 | 1000 images | ~$40 |
+| **Total** | | **~$70/month** |
+
+💡 **Free Tier Benefits:**
+- Cosmos DB: 1000 RU/s free forever (perfect for development!)
+- First 5GB storage free
+- No upfront costs
+
+## 🔧 Manual Configuration (If Script Fails)
+
+If the automated script fails, follow these manual steps:
+
+### 1. Set Subscription
+```bash
+az login
+az account set --subscription "5fddbeee-d040-44ad-a7a0-a526d45d98a2"
+```
+
+### 2. Create Resource Group
+```bash
 az group create \
   --name rg-icon-generator \
   --location eastus
-
-# Deploy to dev
-az deployment group create \
-  --resource-group rg-icon-generator \
-  --template-file ./main.bicep \
-  --parameters ./parameters.dev.json \
-  --name infrastructure-dev-$(date +%Y%m%d-%H%M%S)
-
-# Deploy to production
-az deployment group create \
-  --resource-group rg-icon-generator \
-  --template-file ./main.bicep \
-  --parameters ./parameters.main.json \
-  --name infrastructure-prod-$(date +%Y%m%d-%H%M%S)
 ```
 
-### View Deployment Outputs
-
+### 3. Create Azure OpenAI
 ```bash
-# Get outputs from deployment
-az deployment group show \
+az cognitiveservices account create \
+  --name openai-icon-gen-$(date +%s) \
   --resource-group rg-icon-generator \
-  --name infrastructure-dev-<timestamp> \
-  --query properties.outputs
+  --kind OpenAI \
+  --sku S0 \
+  --location eastus \
+  --yes
 ```
 
-## Azure DevOps Pipeline Deployment
+### 4. Deploy Models via Portal
+- Go to https://ai.azure.com
+- Create project → Deployments
+- Deploy DALL-E 3 (name: `dall-e-3`)
+- Deploy GPT-4o-mini (name: `gpt-4o-mini`, 10K TPM)
 
-The pipeline is triggered automatically on commits to `main` or `develop` branches.
-
-### Pipeline Stages
-
-1. **Infrastructure** - Deploy Bicep templates
-2. **BuildBackend** - Build and test Azure Functions
-3. **BuildFrontend** - Build React application
-4. **DeployBackend** - Deploy Functions to Azure
-5. **DeployFrontend** - Deploy to Static Web App
-6. **PostDeployment** - Configure Cosmos DB and Storage
-7. **SmokeTests** - Verify deployments
-
-### Manual Pipeline Trigger
-
+### 5. Create Cosmos DB
 ```bash
-# Trigger pipeline via Azure CLI
-az pipelines run \
-  --name "Icon Generator CI/CD" \
-  --organization https://dev.azure.com/YOUR_ORG \
-  --project YOUR_PROJECT
-```
-
-## Post-Deployment Configuration
-
-### 1. Deploy AI Models (Manual)
-
-Azure OpenAI model deployments must be done through the Azure AI Foundry portal:
-
-1. Navigate to [https://ai.azure.com](https://ai.azure.com)
-2. Select your subscription and OpenAI resource
-3. Go to **Models + endpoints** → **Deploy model**
-4. Deploy **DALL-E 3**:
-   - Deployment name: `dalle3-icon-generator`
-   - Model version: Latest
-   - Deployment type: Standard
-5. Deploy **GPT-4o-mini**:
-   - Deployment name: `gpt-4o-mini-prompts`
-   - Tokens per minute: 10K (adjust as needed)
-
-### 2. Initialize Cosmos DB
-
-The pipeline automatically creates the database and containers, but you can also do it manually:
-
-```bash
-# Create database
-az cosmosdb sql database create \
-  --account-name cosmos-icongen-dev-<uniqueid> \
+az cosmosdb create \
+  --name cosmos-icon-gen-$(date +%s) \
   --resource-group rg-icon-generator \
-  --name IconGeneratorDB \
-  --throughput 400
-
-# Create Users container
-az cosmosdb sql container create \
-  --account-name cosmos-icongen-dev-<uniqueid> \
-  --resource-group rg-icon-generator \
-  --database-name IconGeneratorDB \
-  --name Users \
-  --partition-key-path "/id"
-
-# Create Icons container
-az cosmosdb sql container create \
-  --account-name cosmos-icongen-dev-<uniqueid> \
-  --resource-group rg-icon-generator \
-  --database-name IconGeneratorDB \
-  --name Icons \
-  --partition-key-path "/userId"
+  --locations regionName=eastus \
+  --enable-free-tier true
 ```
 
-### 3. Configure CORS for Storage
+See `Docs/AZURE_AI_FOUNDRY_SETUP.md` for detailed manual steps.
 
-```bash
-az storage cors add \
-  --services b \
-  --methods GET POST PUT \
-  --origins '*' \
-  --allowed-headers '*' \
-  --exposed-headers '*' \
-  --max-age 3600 \
-  --account-name <storage-account-name>
-```
+## 🗑️ Cleanup (Delete Everything)
 
-## Environment Differences
-
-### Development
-- Cosmos DB: Serverless + Free Tier
-- App Service Plan: Consumption (Y1)
-- Static Web App: Free tier
-- Storage: Locally redundant (LRS)
-- Log retention: 30 days
-
-### Production
-- Cosmos DB: Provisioned throughput
-- App Service Plan: Premium V3 (P1v3)
-- Static Web App: Standard tier
-- Storage: Geo-redundant (GRS)
-- Log retention: 90 days
-- Auto-scaling enabled
-
-## Cost Estimation
-
-### Development Environment (Monthly)
-- Azure Functions (Consumption): ~$5
-- Cosmos DB (Serverless): ~$25
-- Storage Account: ~$5
-- OpenAI API calls: Variable (pay-per-use)
-- **Estimated Total**: ~$35-50/month
-
-### Production Environment (Monthly)
-- Azure Functions (Premium): ~$150
-- Cosmos DB (Provisioned): ~$50
-- Storage Account (GRS): ~$20
-- Static Web App (Standard): ~$9
-- Application Insights: ~$10
-- OpenAI API calls: Variable based on usage
-- **Estimated Total**: ~$250-300/month + API usage
-
-## Troubleshooting
-
-### Deployment Fails with "Resource Already Exists"
-
-```bash
-# Delete and redeploy
-az group delete --name rg-icon-generator --yes
-az group create --name rg-icon-generator --location eastus
-# Re-run deployment
-```
-
-### Function App Not Starting
-
-Check application settings:
-```bash
-az functionapp config appsettings list \
-  --name func-icongen-dev-<uniqueid> \
-  --resource-group rg-icon-generator
-```
-
-### Cosmos DB Connection Issues
-
-Verify connection string:
-```bash
-az cosmosdb keys list \
-  --name cosmos-icongen-dev-<uniqueid> \
-  --resource-group rg-icon-generator \
-  --type connection-strings
-```
-
-## Security Best Practices
-
-1. **Use Managed Identities** - Function App uses system-assigned managed identity
-2. **Key Vault Integration** - Store secrets in Key Vault, reference in app settings
-3. **HTTPS Only** - All services enforce HTTPS
-4. **Minimum TLS 1.2** - All services require TLS 1.2 or higher
-5. **RBAC** - Use role-based access control instead of access keys where possible
-
-## Clean Up Resources
-
-To delete all resources:
+**Warning:** This will delete ALL resources and data!
 
 ```bash
 az group delete \
@@ -268,9 +267,75 @@ az group delete \
   --no-wait
 ```
 
-## Additional Resources
+## 📚 Additional Resources
 
-- [Azure Bicep Documentation](https://learn.microsoft.com/azure/azure-resource-manager/bicep/)
-- [Azure Functions Documentation](https://learn.microsoft.com/azure/azure-functions/)
-- [Azure OpenAI Documentation](https://learn.microsoft.com/azure/ai-services/openai/)
-- [Cosmos DB Documentation](https://learn.microsoft.com/azure/cosmos-db/)
+- **Azure AI Foundry:** https://ai.azure.com
+- **Azure Portal:** https://portal.azure.com
+- **Cosmos DB Free Tier:** https://learn.microsoft.com/azure/cosmos-db/free-tier
+- **OpenAI Models:** https://learn.microsoft.com/azure/ai-services/openai/concepts/models
+
+## 🆘 Troubleshooting
+
+### Error: "Location not available for OpenAI"
+Try alternative regions: `eastus2`, `westeurope`, `swedencentral`
+
+### Error: "Deployment failed"
+Model deployment via CLI sometimes fails. Use Azure AI Foundry portal:
+1. https://ai.azure.com
+2. Deployments → Deploy model
+3. Select DALL-E 3 and GPT-4o-mini
+
+### Error: "Free tier already used"
+You can only have one Cosmos DB free tier per subscription. If you already have one:
+- Remove `--enable-free-tier true` flag
+- Cost will be ~$25/month for 1600 RU/s
+
+### Cosmos DB takes too long
+Cosmos DB creation can take 3-5 minutes. The script waits automatically.
+
+### Can't find credentials file
+```bash
+cd /Users/jorgeflores/github/icon-generator/infrastructure
+cat azure-credentials.env
+```
+
+## 🔒 Security Best Practices
+
+### 1. Protect Credentials
+```bash
+# Add to .gitignore (already done)
+echo "azure-credentials.env" >> .gitignore
+echo "local.settings.json" >> .gitignore
+```
+
+### 2. Use Key Vault (Production)
+For production, move secrets to Azure Key Vault:
+```bash
+# Create Key Vault
+az keyvault create \
+  --name kv-icon-gen-$(date +%s) \
+  --resource-group rg-icon-generator
+```
+
+### 3. Enable Managed Identity
+For Azure Functions deployment, use managed identity instead of keys.
+
+### 4. Rotate Keys Regularly
+```bash
+# Regenerate OpenAI key
+az cognitiveservices account keys regenerate \
+  --name $OPENAI_RESOURCE_NAME \
+  --resource-group rg-icon-generator \
+  --key-name key2
+```
+
+---
+
+**Ready to provision?**
+
+```bash
+cd /Users/jorgeflores/github/icon-generator/infrastructure
+./provision-azure-resources.sh
+```
+
+The script will guide you through everything! 🚀

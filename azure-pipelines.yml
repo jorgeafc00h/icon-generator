@@ -102,37 +102,15 @@ stages:
               publishLocation: 'Container'
 
   # ============================================
-  # Stage 3: Build Frontend (React)
+  # Stage 3: Build Frontend (React) - DISABLED
+  # Only building Azure Functions for now
   # ============================================
-  - stage: BuildFrontend
-    displayName: 'Build Frontend'
-    # dependsOn: Infrastructure  # Commented out - remove dependency on Infrastructure stage
-    jobs:
-      - job: BuildReact
-        displayName: 'Build React App'
-        pool:
-          vmImage: $(vmImageName)
-        steps:
-          - task: NodeTool@0
-            displayName: 'Install Node.js'
-            inputs:
-              versionSpec: $(nodeVersion)
-
-          - script: |
-              cd frontend
-              npm ci
-              npm run build
-            displayName: 'Install Dependencies & Build'
-            env:
-              VITE_API_BASE_URL: $(VITE_API_BASE_URL)
-              VITE_STRIPE_PUBLISHABLE_KEY: $(VITE_STRIPE_PUBLISHABLE_KEY)
-
-          - task: PublishBuildArtifacts@1
-            displayName: 'Publish Frontend Artifact'
-            inputs:
-              PathtoPublish: '$(System.DefaultWorkingDirectory)/frontend/dist'
-              ArtifactName: 'frontend'
-              publishLocation: 'Container'
+  # - stage: BuildFrontend
+  #   displayName: 'Build Frontend'
+  #   jobs:
+  #     - job: BuildReact
+  #       displayName: 'Build React App'
+  #       ... (frontend build tasks disabled)
 
   # ============================================
   # Deployment stages commented out until service connection is authorized

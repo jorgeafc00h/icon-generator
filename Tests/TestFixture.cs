@@ -50,9 +50,23 @@ public class TestFixture : IDisposable
             options.Gpt4oMiniDeployment = Configuration["GPT4O_MINI_DEPLOYMENT_NAME"] ?? "gpt-4o-mini";
         });
 
+        // Configure Storage options
+        services.Configure<StorageOptions>(options =>
+        {
+            options.ConnectionString = Configuration["AZURE_STORAGE_CONNECTION_STRING"]
+                ?? throw new InvalidOperationException("AZURE_STORAGE_CONNECTION_STRING not set");
+            options.ContainerName = Configuration["STORAGE_CONTAINER_NAME"] ?? "generated-icons";
+            options.AssetsContainerName = Configuration["STORAGE_ASSETS_CONTAINER_NAME"] ?? "app-resources";
+        });
+
+        // Add HttpClient factory
+        services.AddHttpClient();
+
         // Register services
         services.AddSingleton<PromptEngineeringService>();
         services.AddSingleton<AIService>();
+        services.AddSingleton<IImageService, ImageService>();
+        services.AddSingleton<IStorageService, StorageService>();
 
         ServiceProvider = services.BuildServiceProvider();
     }

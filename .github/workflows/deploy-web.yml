@@ -1,6 +1,6 @@
 name: Deploy React Web App to Azure Static Web Apps
 
-on:
+"on":
   push:
     branches:
       - main

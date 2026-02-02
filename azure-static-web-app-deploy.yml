@@ -1,0 +1,81 @@
+name: Deploy React Web App to Azure Static Web Apps
+
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pr:
+  branches:
+    include:
+      - main
+
+variables:
+  - name: nodeVersion
+    value: '20'
+  - name: vmImageName
+    value: 'ubuntu-latest'
+  # Add these variables in Azure DevOps Pipeline Variables (mark as secret):
+  # - AZURE_STATIC_WEB_APPS_API_TOKEN
+  # - AZURE_FUNCTIONS_URL
+  # - STRIPE_PUBLIC_KEY
+
+stages:
+  - stage: BuildAndDeploy
+    displayName: 'Build and Deploy'
+    condition: or(eq(variables['Build.Reason'], 'IndividualCI'), ne(variables['Build.Reason'], 'PullRequest'))
+    jobs:
+      - job: BuildDeploy
+        displayName: 'Build and Deploy Job'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - checkout: self
+            submodules: true
+
+          - task: NodeTool@0
+            displayName: 'Setup Node.js'
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - task: Cache@2
+            displayName: 'Cache npm dependencies'
+            inputs:
+              key: 'npm | "$(Agent.OS)" | web/package-lock.json'
+              path: 'web/node_modules'
+              restoreKeys: |
+                npm | "$(Agent.OS)"
+
+          - script: npm ci
+            displayName: 'Install dependencies'
+            workingDirectory: ./web
+
+          - script: npm run build
+            displayName: 'Build Application'
+            workingDirectory: ./web
+            env:
+              VITE_API_ENDPOINT: $(AZURE_FUNCTIONS_URL)
+              VITE_STRIPE_PUBLIC_KEY: $(STRIPE_PUBLIC_KEY)
+
+          - task: AzureStaticWebApp@0
+            displayName: 'Deploy to Azure Static Web Apps'
+            inputs:
+              app_location: '/web'
+              output_location: 'dist'
+              azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
+
+  - stage: ClosePullRequest
+    displayName: 'Close Pull Request'
+    condition: and(eq(variables['Build.Reason'], 'PullRequest'), eq(variables['System.PullRequest.PullRequestClosedStatus'], 'Closed'))
+    jobs:
+      - job: ClosePR
+        displayName: 'Close Pull Request Job'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureStaticWebApp@0
+            displayName: 'Close Pull Request'
+            inputs:
+              action: 'close'
+              azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)

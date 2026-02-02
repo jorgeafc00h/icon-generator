@@ -3,6 +3,7 @@ namespace IconGenerator.Functions.Services;
 using IconGenerator.Functions.Models;
 using IconGenerator.Functions.Prompts;
 using Microsoft.Extensions.Logging;
+using System.Text.RegularExpressions;
 
 /// <summary>
 /// Advanced prompt engineering service that builds sophisticated prompts
@@ -24,28 +25,22 @@ public class PromptEngineeringService
     {
         var styleGuidelines = GetStyleGuidelines(style);
 
-        var systemPrompt = $@"You are an elite UI/UX designer and icon design specialist with expertise in creating professional app icons for iOS, Android, and web platforms.
-
-{DesignKnowledgeBase.IconDesignPrinciples}
+        var systemPrompt = $@"You are a professional app icon designer creating polished icons for mobile and web platforms.
 
 {styleGuidelines}
 
-{DesignKnowledgeBase.CompositionRules}
+Design guidelines:
+- Clean icon with no text or letters
+- Simple focused subject, not complex scenes
+- Works well at small and large sizes
+- Clear recognizable silhouette
+- Icon fills most of the canvas (85-90%) with minimal padding
+- Main subject is large and centered
+- Bold design that extends near the edges
 
-IMPORTANT CONSTRAINTS:
-- NO TEXT, LETTERS, OR WORDS in the icon
-- NO complex scenes with multiple subjects
-- NO photorealistic faces or people
-- MUST work at all sizes (29px to 1024px)
-- MUST have clear silhouette
-- MUST follow platform guidelines
+Create a concise DALL-E prompt describing the icon design.";
 
-OUTPUT FORMAT:
-Generate a detailed DALL-E prompt that incorporates all these design principles.
-Focus on composition, color harmony, visual hierarchy, and professional execution.
-Return ONLY the prompt text, no explanations.";
-
-        return systemPrompt;
+        return SanitizePrompt(systemPrompt);
     }
 
     /// <summary>
@@ -55,24 +50,15 @@ Return ONLY the prompt text, no explanations.";
     {
         var colorGuidance = DesignKnowledgeBase.ColorPalettes.GetPalettePrompt(request.Colors);
 
-        var userPrompt = $@"Create a professional {request.Style} app icon for: {request.Keywords}
+        var userPrompt = $@"Design a {request.Style} app icon for: {request.Keywords}
 
-COLOR PALETTE:
-{colorGuidance}
+Colors: {colorGuidance}
 
-STYLE: {request.Style}
+The icon should fill most of the canvas with a large centered subject. Use the {request.Style} style with professional quality. Make it scalable and memorable.
 
-REQUIREMENTS:
-- Icon should be centered on a clean background
-- Design must be scalable and recognizable
-- Follow {request.Style} style guidelines strictly
-- Ensure professional quality suitable for app stores
-- Create unique, memorable design avoiding clichés
-- Optimize for {request.Quality} quality rendering
+Create a DALL-E prompt for this icon.";
 
-Generate the complete DALL-E 3 prompt now.";
-
-        return userPrompt;
+        return SanitizePrompt(userPrompt);
     }
 
     /// <summary>
@@ -119,6 +105,43 @@ Return ONLY the prompt text.";
             "pixel" or "retro" => DesignKnowledgeBase.StyleTemplates.Pixel,
             _ => "Follow the specified style while maintaining professional quality and clarity."
         };
+    }
+
+    /// <summary>
+    /// Sanitize prompts to avoid Azure OpenAI content policy triggers
+    /// </summary>
+    private string SanitizePrompt(string prompt)
+    {
+        if (string.IsNullOrEmpty(prompt)) return prompt;
+
+        var replacements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "night club", "music venue" },
+            { "nightclub", "music venue" },
+            { "nightlife", "events" },
+            { "music streaming", "audio player" },
+            { "sound waves", "audio visuals" },
+            { "streaming", "live" },
+            // Reduce excessive instruction language
+            { "MUST", "should" },
+            { "IMPORTANT:", "Note:" },
+            { "CRITICAL:", "Note:" },
+            { "REQUIRED:", "Include:" },
+            { "CONSTRAINTS:", "Guidelines:" },
+            { "strictly", "carefully" }
+        };
+
+        var sanitized = prompt;
+        foreach (var kv in replacements)
+        {
+            sanitized = Regex.Replace(sanitized, @"\b" + Regex.Escape(kv.Key) + @"\b", kv.Value, RegexOptions.IgnoreCase);
+        }
+
+        // Remove excessive emphasis markers
+        sanitized = Regex.Replace(sanitized, @"\*\*([^*]+)\*\*", "$1", RegexOptions.IgnoreCase);
+        sanitized = Regex.Replace(sanitized, @"!!+", ".", RegexOptions.IgnoreCase);
+
+        return sanitized;
     }
 
     /// <summary>

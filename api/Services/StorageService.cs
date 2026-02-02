@@ -2,6 +2,7 @@ namespace IconGenerator.Functions.Services;
 
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Sas;
 using IconGenerator.Functions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -48,9 +49,9 @@ public class StorageService : IStorageService
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
 
-        // Ensure container exists
+        // Ensure container exists with private access
         await containerClient.CreateIfNotExistsAsync(
-            PublicAccessType.Blob,
+            PublicAccessType.None,
             cancellationToken: cancellationToken);
 
         // Upload blob
@@ -74,7 +75,18 @@ public class StorageService : IStorageService
 
         _logger.LogInformation("Uploaded image to: {BlobName}", blobName);
 
-        return blobClient.Uri.ToString();
+        // Generate SAS token for read access (valid for 1 year)
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = _containerName,
+            BlobName = blobName,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.AddYears(1)
+        };
+        sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+        var sasUri = blobClient.GenerateSasUri(sasBuilder);
+        return sasUri.ToString();
     }
 
     public async Task<byte[]> DownloadImageAsync(
@@ -92,9 +104,9 @@ public class StorageService : IStorageService
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(_assetsContainerName);
 
-        // Ensure container exists
+        // Ensure container exists with private access
         await containerClient.CreateIfNotExistsAsync(
-            PublicAccessType.Blob,
+            PublicAccessType.None,
             cancellationToken: cancellationToken);
 
         // Upload blob
@@ -118,6 +130,17 @@ public class StorageService : IStorageService
 
         _logger.LogInformation("Uploaded ZIP to: {BlobName}", blobName);
 
-        return blobClient.Uri.ToString();
+        // Generate SAS token for read access (valid for 7 days)
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = _assetsContainerName,
+            BlobName = blobName,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.AddDays(7)
+        };
+        sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+        var sasUri = blobClient.GenerateSasUri(sasBuilder);
+        return sasUri.ToString();
     }
 }

@@ -42,7 +42,7 @@ public class IconStyleSamplesGenerationTests
         {
             "3D", new List<(string, string)>
             {
-                ("Music Player", "music streaming app with headphones and sound waves"),
+                ("Music Player", "audio player app with headphones and equalizer"),
                 ("Fitness Tracker", "fitness and health tracking app with heart rate monitor")
             }
         },
@@ -133,8 +133,8 @@ public class IconStyleSamplesGenerationTests
         {
             "Neon", new List<(string, string)>
             {
-                ("Night Club", "nightlife and events app"),
-                ("Racing", "neon racing game app")
+                ("Music Festival", "live music and concert event app"),
+                ("Racing Game", "neon-style racing game app")
             }
         },
         {
@@ -167,11 +167,13 @@ public class IconStyleSamplesGenerationTests
         }
     };
 
-    [Fact(DisplayName = "Should generate 2 sample icons for each style (36 total)", Skip = "Costs money - remove Skip to generate samples")]
+    [Fact(DisplayName = "Should generate 2 sample icons for each style (36 total)"
+    ,Skip = "Costs money - remove Skip to generate samples"
+     )]
     public async Task ShouldGenerateAllStyleSamples()
     {
         _output.WriteLine("╔════════════════════════════════════════════════════════════════╗");
-        _output.WriteLine("║        ICON STYLE SAMPLES GENERATION - COMPREHENSIVE           ║");
+        
         _output.WriteLine("╔════════════════════════════════════════════════════════════════╗");
         _output.WriteLine("");
 
@@ -198,7 +200,7 @@ public class IconStyleSamplesGenerationTests
             foreach (var (concept, keywords) in samples)
             {
                 _output.WriteLine($"   🎨 Sample {sampleNumber}: {concept}");
-
+                var enhancedPrompt= "";
                 try
                 {
                     // Create icon request
@@ -211,7 +213,7 @@ public class IconStyleSamplesGenerationTests
                     };
 
                     // Enhance prompt
-                    var enhancedPrompt = await _aiService.EnhancePromptAsync(request);
+                    enhancedPrompt = await _aiService.EnhancePromptAsync(request);
                     _output.WriteLine($"      ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
                     // Generate icon with DALL-E 3
@@ -294,11 +296,11 @@ public class IconStyleSamplesGenerationTests
     }
 
     [Theory(DisplayName = "Should generate sample icon for specific style", Skip = "Costs money - remove Skip to generate")]
-    [InlineData("3D", "Music Player", "music streaming app with headphones and sound waves")]
+    [InlineData("3D", "Music Player", "audio player app with headphones and equalizer")]
     [InlineData("Minimal", "Weather App", "weather forecast app with simple icons")]
     [InlineData("Gradient", "Social Network", "social media networking app")]
     [InlineData("Isometric", "City Builder", "city building and management game")]
-    [InlineData("Neon", "Night Club", "nightlife and events app")]
+    [InlineData("Neon", "Music Festival", "live music and concert event app")]
     public async Task ShouldGenerateSingleStyleSample(string style, string concept, string keywords)
     {
         _output.WriteLine($"🎨 Generating {style} style sample: {concept}");

@@ -2,12 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <DefaultItemExcludes>$(DefaultItemExcludes);PromptVerifier/**</DefaultItemExcludes>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Exclude utility programs with top-level statements from test compilation -->
+    <Compile Remove="Program.cs" />
+    <Compile Remove="PromptVerifier/**/*.cs" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Test Framework - xUnit 3.0 -->

@@ -22,31 +22,33 @@ public class PurchaseCreditsFunction
 
     [Function("CreateCheckoutSession")]
     public async Task<HttpResponseData> CreateCheckoutSession(
-        [HttpTrigger(AuthorizationLevel.Function, "post", Route = "payments/checkout")] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "payments/checkout")] HttpRequestData req,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation("Create checkout session function triggered");
 
         try
         {
-            // Get user ID from headers
-            var userId = req.Headers.GetValues("X-User-Id").FirstOrDefault();
+            // Validate Authorization header
+            var authHeader = req.Headers.GetValues("Authorization").FirstOrDefault();
 
-            if (string.IsNullOrEmpty(userId))
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
             {
-                var errorResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
-                await errorResponse.WriteAsJsonAsync(new { error = "User ID not found" });
-                return errorResponse;
+                var unauthorizedResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
+                await unauthorizedResponse.WriteAsJsonAsync(new { error = "Missing or invalid authorization token" });
+                return unauthorizedResponse;
             }
 
             // Parse request body
             var request = await req.ReadFromJsonAsync<PurchaseRequest>(cancellationToken);
-            if (request == null || string.IsNullOrEmpty(request.PackageId))
+            if (request == null || string.IsNullOrEmpty(request.PackageId) || string.IsNullOrEmpty(request.UserId))
             {
                 var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
-                await badRequestResponse.WriteAsJsonAsync(new { error = "Invalid request body" });
+                await badRequestResponse.WriteAsJsonAsync(new { error = "Invalid request body. PackageId and UserId are required." });
                 return badRequestResponse;
             }
+
+            var userId = request.UserId;
 
             // Create checkout session
             var session = await _paymentService.CreateCheckoutSessionAsync(userId, request, cancellationToken);

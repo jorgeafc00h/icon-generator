@@ -7,6 +7,7 @@ import { IconGenerator } from './components/IconGenerator/IconGenerator'
 import { AppResources } from './components/AppResources/AppResources'
 import { Dashboard } from './components/Dashboard/Dashboard'
 import { Pricing } from './components/Pricing/Pricing'
+import { Profile } from './components/Profile/Profile'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,7 +18,7 @@ const queryClient = new QueryClient({
   },
 })
 
-type Page = 'generator' | 'resources' | 'dashboard' | 'pricing'
+type Page = 'generator' | 'resources' | 'dashboard' | 'pricing' | 'profile'
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('generator')
@@ -32,6 +33,7 @@ function App() {
           {currentPage === 'resources' && <AppResources />}
           {currentPage === 'dashboard' && <Dashboard />}
           {currentPage === 'pricing' && <Pricing />}
+          {currentPage === 'profile' && <Profile />}
         </main>
 
         <Footer />

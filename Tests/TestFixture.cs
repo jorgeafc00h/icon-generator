@@ -50,11 +50,11 @@ public class TestFixture : IDisposable
             options.Gpt4oMiniDeployment = Configuration["GPT4O_MINI_DEPLOYMENT_NAME"] ?? "gpt-4o-mini";
         });
 
-        // Configure Storage options
+        // Configure Storage options (optional for prompt-only tests)
         services.Configure<StorageOptions>(options =>
         {
             options.ConnectionString = Configuration["AZURE_STORAGE_CONNECTION_STRING"]
-                ?? throw new InvalidOperationException("AZURE_STORAGE_CONNECTION_STRING not set");
+                ?? "UseDevelopmentStorage=true"; // Default to local emulator
             options.ContainerName = Configuration["STORAGE_CONTAINER_NAME"] ?? "generated-icons";
             options.AssetsContainerName = Configuration["STORAGE_ASSETS_CONTAINER_NAME"] ?? "app-resources";
         });

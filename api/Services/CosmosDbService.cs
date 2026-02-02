@@ -48,6 +48,56 @@ public class CosmosDbService : IDatabaseService
         }
     }
 
+    public async Task<Models.User?> GetUserByGoogleIdAsync(string googleId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var query = new QueryDefinition(
+                "SELECT * FROM c WHERE c.Auth.GoogleId = @googleId")
+                .WithParameter("@googleId", googleId);
+
+            var iterator = _usersContainer.GetItemQueryIterator<Models.User>(query);
+
+            if (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync(cancellationToken);
+                return response.FirstOrDefault();
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error getting user by Google ID: {googleId}");
+            return null;
+        }
+    }
+
+    public async Task<Models.User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var query = new QueryDefinition(
+                "SELECT * FROM c WHERE c.Email = @email")
+                .WithParameter("@email", email);
+
+            var iterator = _usersContainer.GetItemQueryIterator<Models.User>(query);
+
+            if (iterator.HasMoreResults)
+            {
+                var response = await iterator.ReadNextAsync(cancellationToken);
+                return response.FirstOrDefault();
+            }
+
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error getting user by email: {email}");
+            return null;
+        }
+    }
+
     public async Task<Models.User> CreateUserAsync(Models.User user, CancellationToken cancellationToken = default)
     {
         var response = await _usersContainer.CreateItemAsync(

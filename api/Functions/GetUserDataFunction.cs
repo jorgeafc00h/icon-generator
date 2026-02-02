@@ -21,21 +21,29 @@ public class GetUserDataFunction
 
     [Function("GetUserData")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = "user/data")] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users/{userId}")] HttpRequestData req,
+        string userId,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Get user data function triggered");
+        _logger.LogInformation("Get user data function triggered for user: {UserId}", userId);
 
         try
         {
-            // Get user ID from headers
-            var userId = req.Headers.GetValues("X-User-Id").FirstOrDefault();
+            // Validate Authorization header
+            var authHeader = req.Headers.GetValues("Authorization").FirstOrDefault();
+
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            {
+                var unauthorizedResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
+                await unauthorizedResponse.WriteAsJsonAsync(new { error = "Missing or invalid authorization token" });
+                return unauthorizedResponse;
+            }
 
             if (string.IsNullOrEmpty(userId))
             {
-                var errorResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
-                await errorResponse.WriteAsJsonAsync(new { error = "User ID not found" });
-                return errorResponse;
+                var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badRequestResponse.WriteAsJsonAsync(new { error = "User ID is required" });
+                return badRequestResponse;
             }
 
             // Get user data
@@ -57,15 +65,16 @@ public class GetUserDataFunction
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(new
             {
-                user = new
-                {
-                    id = user.Id,
-                    email = user.Email,
-                    credits = user.Credits,
-                    createdAt = user.CreatedAt,
-                    metadata = user.Metadata
-                },
-                icons = icons.Select(i => new
+                id = user.Id,
+                email = user.Email,
+                name = user.Name,
+                profilePictureUrl = user.ProfilePictureUrl,
+                credits = user.Credits,
+                createdAt = user.CreatedAt,
+                updatedAt = user.UpdatedAt,
+                metadata = user.Metadata,
+                preferences = user.Preferences,
+                recentIcons = icons.Select(i => new
                 {
                     id = i.Id,
                     imageUrl = i.ImageUrl,
@@ -74,8 +83,8 @@ public class GetUserDataFunction
                     colors = i.Colors,
                     quality = i.Quality,
                     createdAt = i.CreatedAt
-                }),
-                transactions = transactions.Select(t => new
+                }).Take(10),
+                recentTransactions = transactions.Select(t => new
                 {
                     id = t.Id,
                     type = t.Type,
@@ -83,7 +92,7 @@ public class GetUserDataFunction
                     amountInCents = t.AmountInCents,
                     description = t.Description,
                     createdAt = t.CreatedAt
-                })
+                }).Take(10)
             }, cancellationToken);
 
             return response;

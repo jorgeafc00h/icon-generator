@@ -6,6 +6,8 @@ public interface IDatabaseService
 {
     // User operations
     Task<User?> GetUserAsync(string userId, CancellationToken cancellationToken = default);
+    Task<User?> GetUserByGoogleIdAsync(string googleId, CancellationToken cancellationToken = default);
+    Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<User> CreateUserAsync(User user, CancellationToken cancellationToken = default);
     Task<User> UpdateUserAsync(User user, CancellationToken cancellationToken = default);
     Task<bool> DeductCreditsAsync(string userId, int amount, CancellationToken cancellationToken = default);

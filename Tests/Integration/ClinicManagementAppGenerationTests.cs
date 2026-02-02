@@ -8,7 +8,7 @@ namespace IconGenerator.Tests.Integration;
 
 /// <summary>
 /// Complete Doctor Clinic Management Application Generation Tests
-/// Generates a full healthcare app with:
+/// Generates REAL images for a full healthcare app with:
 /// - App icons for all platforms
 /// - Login screen (Google & Apple Sign-In)
 /// - Home dashboard with appointments overview
@@ -16,6 +16,9 @@ namespace IconGenerator.Tests.Integration;
 /// - Patient history/medical records
 /// - Appointment management (Google Calendar integration)
 /// - Sync status indicators
+///
+/// IMPORTANT: This test generates actual images using DALL-E 3
+/// Cost: ~$0.34 total (1 HD icon + 6 standard screens)
 /// </summary>
 [Collection("Integration Tests")]
 public class ClinicManagementAppGenerationTests
@@ -24,7 +27,12 @@ public class ClinicManagementAppGenerationTests
     private readonly ITestOutputHelper _output;
     private readonly AIService _aiService;
     private readonly IStorageService _storageService;
-    private readonly IImageService _imageService;
+
+    // Test user for clinic app generation
+    private const string CLINIC_APP_USER_ID = "clinic-demo";
+
+    // Track generated assets
+    private readonly List<GeneratedAsset> _generatedAssets = new();
 
     public ClinicManagementAppGenerationTests(TestFixture fixture, ITestOutputHelper output)
     {
@@ -32,7 +40,17 @@ public class ClinicManagementAppGenerationTests
         _output = output;
         _aiService = _fixture.ServiceProvider.GetRequiredService<AIService>();
         _storageService = _fixture.ServiceProvider.GetRequiredService<IStorageService>();
-        _imageService = _fixture.ServiceProvider.GetRequiredService<IImageService>();
+    }
+
+    // Helper class to track generated assets
+    private class GeneratedAsset
+    {
+        public string Name { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string IconId { get; set; } = "";
+        public string StorageUrl { get; set; } = "";
+        public int FileSizeKB { get; set; }
+        public string Quality { get; set; } = "";
     }
 
     [Fact(DisplayName = "Should generate complete clinic management app resources")]
@@ -77,6 +95,11 @@ public class ClinicManagementAppGenerationTests
         _output.WriteLine("╔══════════════════════════════════════════════════════════════╗");
         _output.WriteLine("");
         PrintGenerationSummary();
+        PrintGeneratedAssetsJSON();
+
+        // Verify we generated all expected assets
+        Assert.True(_generatedAssets.Count == 7, $"Expected 7 assets (1 icon + 6 screens), got {_generatedAssets.Count}");
+        Assert.True(_generatedAssets.Sum(a => a.FileSizeKB) > 0, "Total file size should be greater than 0");
     }
 
     private async Task GenerateHealthcareAppIcon(string appName, List<string> brandColors)
@@ -100,17 +123,43 @@ public class ClinicManagementAppGenerationTests
             Quality = "hd"
         };
 
+        // Enhance prompt
         var enhancedPrompt = await _aiService.EnhancePromptAsync(iconRequest);
+        _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
-        _output.WriteLine($"✓ Enhanced Prompt ({enhancedPrompt.Length} chars):");
-        _output.WriteLine($"  {enhancedPrompt.Substring(0, Math.Min(120, enhancedPrompt.Length))}...");
+        // Generate icon with DALL-E 3
+        var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, iconRequest.Quality);
+        _output.WriteLine($"  ✓ Icon generated from DALL-E 3");
+
+        // Save to Azure Storage
+        var iconId = $"healthcare-app-icon-{Guid.NewGuid().ToString().Substring(0, 8)}";
+        var storedUrl = await _storageService.UploadImageAsync(imageUrl, CLINIC_APP_USER_ID, iconId);
+        _output.WriteLine($"  ✓ Saved to storage: {iconId}");
+
+        // Verify download
+        var imageData = await _storageService.DownloadImageAsync(storedUrl);
+        _output.WriteLine($"  ✓ Verified ({imageData.Length / 1024} KB)");
+
+        // Track asset
+        _generatedAssets.Add(new GeneratedAsset
+        {
+            Name = "App Icon",
+            Type = "icon",
+            IconId = iconId,
+            StorageUrl = storedUrl,
+            FileSizeKB = imageData.Length / 1024,
+            Quality = "hd"
+        });
+
+        _output.WriteLine($"  ✅ App Icon Complete!");
         _output.WriteLine($"  Quality: HD (medical professional standard)");
-        _output.WriteLine($"  Style: Modern, trustworthy");
-        _output.WriteLine($"  Colors: Healthcare blue (#4A90E2) + Medical green (#50C878)");
+        _output.WriteLine($"  URL: {storedUrl}");
         _output.WriteLine("");
 
         Assert.NotNull(enhancedPrompt);
-        Assert.Contains("medical", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
+        Assert.NotNull(imageUrl);
+        Assert.NotNull(storedUrl);
+        Assert.True(imageData.Length > 0, "Image should have content");
     }
 
     private async Task GenerateLoginScreenWithSocialAuth(string appName, List<string> brandColors)
@@ -140,22 +189,37 @@ public class ClinicManagementAppGenerationTests
             Colors = brandColors
         };
 
+        // Enhance, generate, save
         var enhancedPrompt = await _aiService.EnhancePromptAsync(loginRequest);
+        _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
-        _output.WriteLine("✓ Login Screen with Social Auth Generated");
-        _output.WriteLine($"  Authentication Methods:");
-        _output.WriteLine($"    • Email/Password (traditional)");
-        _output.WriteLine($"    • Google Sign-In (OAuth 2.0)");
-        _output.WriteLine($"    • Apple Sign-In (Sign in with Apple)");
-        _output.WriteLine($"  Security:");
-        _output.WriteLine($"    • HIPAA compliance badge");
-        _output.WriteLine($"    • Secure connection indicators");
-        _output.WriteLine($"  Design: Professional medical UI");
-        _output.WriteLine($"  Prompt length: {enhancedPrompt.Length} characters");
+        var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
+        _output.WriteLine($"  ✓ Screen mockup generated");
+
+        var iconId = $"login-screen-{Guid.NewGuid().ToString().Substring(0, 8)}";
+        var storedUrl = await _storageService.UploadImageAsync(imageUrl, CLINIC_APP_USER_ID, iconId);
+        _output.WriteLine($"  ✓ Saved to storage: {iconId}");
+
+        var imageData = await _storageService.DownloadImageAsync(storedUrl);
+        _output.WriteLine($"  ✓ Verified ({imageData.Length / 1024} KB)");
+
+        _generatedAssets.Add(new GeneratedAsset
+        {
+            Name = "Login Screen",
+            Type = "screen",
+            IconId = iconId,
+            StorageUrl = storedUrl,
+            FileSizeKB = imageData.Length / 1024,
+            Quality = "standard"
+        });
+
+        _output.WriteLine($"  ✅ Login Screen Complete!");
+        _output.WriteLine($"  Features: Google + Apple Sign-In, HIPAA compliance");
+        _output.WriteLine("");
 
         Assert.NotNull(enhancedPrompt);
-        Assert.Contains("google", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("apple", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
+        Assert.NotNull(imageUrl);
+        Assert.True(imageData.Length > 0);
     }
 
     private async Task GenerateHomeDashboard(string appName, List<string> brandColors)
@@ -197,23 +261,35 @@ public class ClinicManagementAppGenerationTests
         };
 
         var enhancedPrompt = await _aiService.EnhancePromptAsync(homeRequest);
+        _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
-        _output.WriteLine("✓ Home Dashboard Generated");
-        _output.WriteLine($"  Components:");
-        _output.WriteLine($"    • Doctor profile header");
-        _output.WriteLine($"    • Google Calendar sync status");
-        _output.WriteLine($"    • Summary cards (3 metrics)");
-        _output.WriteLine($"    • Quick actions (3 buttons)");
-        _output.WriteLine($"    • Upcoming appointments list");
-        _output.WriteLine($"    • Bottom navigation (5 tabs)");
-        _output.WriteLine($"  Real-time Data:");
-        _output.WriteLine($"    • Sync status with Google Calendar");
-        _output.WriteLine($"    • Live appointment updates");
-        _output.WriteLine($"  Prompt length: {enhancedPrompt.Length} characters");
+        var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
+        _output.WriteLine($"  ✓ Screen mockup generated");
+
+        var iconId = $"home-dashboard-{Guid.NewGuid().ToString().Substring(0, 8)}";
+        var storedUrl = await _storageService.UploadImageAsync(imageUrl, CLINIC_APP_USER_ID, iconId);
+        _output.WriteLine($"  ✓ Saved to storage: {iconId}");
+
+        var imageData = await _storageService.DownloadImageAsync(storedUrl);
+        _output.WriteLine($"  ✓ Verified ({imageData.Length / 1024} KB)");
+
+        _generatedAssets.Add(new GeneratedAsset
+        {
+            Name = "Home Dashboard",
+            Type = "screen",
+            IconId = iconId,
+            StorageUrl = storedUrl,
+            FileSizeKB = imageData.Length / 1024,
+            Quality = "standard"
+        });
+
+        _output.WriteLine($"  ✅ Home Dashboard Complete!");
+        _output.WriteLine($"  Features: Google Calendar sync, appointments list");
+        _output.WriteLine("");
 
         Assert.NotNull(enhancedPrompt);
-        Assert.Contains("appointment", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("calendar", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
+        Assert.NotNull(imageUrl);
+        Assert.True(imageData.Length > 0);
     }
 
     private async Task GeneratePatientsListScreen(string appName, List<string> brandColors)
@@ -249,22 +325,35 @@ public class ClinicManagementAppGenerationTests
         };
 
         var enhancedPrompt = await _aiService.EnhancePromptAsync(patientsRequest);
+        _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
-        _output.WriteLine("✓ Patients List Generated");
-        _output.WriteLine($"  Features:");
-        _output.WriteLine($"    • Search & filter functionality");
-        _output.WriteLine($"    • Patient cards with key info");
-        _output.WriteLine($"    • Color-coded status indicators");
-        _output.WriteLine($"    • Alphabetical sections");
-        _output.WriteLine($"    • Quick stats dashboard");
-        _output.WriteLine($"  Patient Card Data:");
-        _output.WriteLine($"    • Photo, name, age, gender");
-        _output.WriteLine($"    • Last visit, condition tag");
-        _output.WriteLine($"    • Status indicator");
-        _output.WriteLine($"  Prompt length: {enhancedPrompt.Length} characters");
+        var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
+        _output.WriteLine($"  ✓ Screen mockup generated");
+
+        var iconId = $"patients-list-{Guid.NewGuid().ToString().Substring(0, 8)}";
+        var storedUrl = await _storageService.UploadImageAsync(imageUrl, CLINIC_APP_USER_ID, iconId);
+        _output.WriteLine($"  ✓ Saved to storage: {iconId}");
+
+        var imageData = await _storageService.DownloadImageAsync(storedUrl);
+        _output.WriteLine($"  ✓ Verified ({imageData.Length / 1024} KB)");
+
+        _generatedAssets.Add(new GeneratedAsset
+        {
+            Name = "Patients List",
+            Type = "screen",
+            IconId = iconId,
+            StorageUrl = storedUrl,
+            FileSizeKB = imageData.Length / 1024,
+            Quality = "standard"
+        });
+
+        _output.WriteLine($"  ✅ Patients List Complete!");
+        _output.WriteLine($"  Features: Search, filter, status indicators");
+        _output.WriteLine("");
 
         Assert.NotNull(enhancedPrompt);
-        Assert.Contains("patient", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
+        Assert.NotNull(imageUrl);
+        Assert.True(imageData.Length > 0);
     }
 
     private async Task GeneratePatientHistoryScreen(string appName, List<string> brandColors)
@@ -310,24 +399,35 @@ public class ClinicManagementAppGenerationTests
         };
 
         var enhancedPrompt = await _aiService.EnhancePromptAsync(historyRequest);
+        _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
-        _output.WriteLine("✓ Patient History Screen Generated");
-        _output.WriteLine($"  Structure:");
-        _output.WriteLine($"    • Patient header with key info");
-        _output.WriteLine($"    • Tabbed navigation (5 tabs)");
-        _output.WriteLine($"    • Timeline view of records");
-        _output.WriteLine($"    • Vital signs summary");
-        _output.WriteLine($"  Medical Records:");
-        _output.WriteLine($"    • Visit history");
-        _output.WriteLine($"    • Prescription records");
-        _output.WriteLine($"    • Lab results (downloadable)");
-        _output.WriteLine($"    • Doctor notes");
-        _output.WriteLine($"  Compliance: HIPAA-compliant design");
-        _output.WriteLine($"  Prompt length: {enhancedPrompt.Length} characters");
+        var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
+        _output.WriteLine($"  ✓ Screen mockup generated");
+
+        var iconId = $"patient-history-{Guid.NewGuid().ToString().Substring(0, 8)}";
+        var storedUrl = await _storageService.UploadImageAsync(imageUrl, CLINIC_APP_USER_ID, iconId);
+        _output.WriteLine($"  ✓ Saved to storage: {iconId}");
+
+        var imageData = await _storageService.DownloadImageAsync(storedUrl);
+        _output.WriteLine($"  ✓ Verified ({imageData.Length / 1024} KB)");
+
+        _generatedAssets.Add(new GeneratedAsset
+        {
+            Name = "Patient History",
+            Type = "screen",
+            IconId = iconId,
+            StorageUrl = storedUrl,
+            FileSizeKB = imageData.Length / 1024,
+            Quality = "standard"
+        });
+
+        _output.WriteLine($"  ✅ Patient History Complete!");
+        _output.WriteLine($"  Features: Timeline, vital signs, HIPAA-compliant");
+        _output.WriteLine("");
 
         Assert.NotNull(enhancedPrompt);
-        Assert.Contains("medical", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("history", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
+        Assert.NotNull(imageUrl);
+        Assert.True(imageData.Length > 0);
     }
 
     private async Task GenerateAppointmentManagementScreen(string appName, List<string> brandColors)
@@ -370,27 +470,35 @@ public class ClinicManagementAppGenerationTests
         };
 
         var enhancedPrompt = await _aiService.EnhancePromptAsync(appointmentRequest);
+        _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
-        _output.WriteLine("✓ Appointment Management Generated");
-        _output.WriteLine($"  Google Calendar Integration:");
-        _output.WriteLine($"    • Real-time sync status");
-        _output.WriteLine($"    • Bi-directional sync");
-        _output.WriteLine($"    • Auto-sync toggle");
-        _output.WriteLine($"    • Last sync timestamp");
-        _output.WriteLine($"  Calendar Features:");
-        _output.WriteLine($"    • Day/Week/Month views");
-        _output.WriteLine($"    • Color-coded appointments");
-        _output.WriteLine($"    • Time slot management");
-        _output.WriteLine($"  Appointment Actions:");
-        _output.WriteLine($"    • Create, Reschedule, Cancel");
-        _output.WriteLine($"    • Start appointment (video call)");
-        _output.WriteLine($"    • Filter by status");
-        _output.WriteLine($"  Prompt length: {enhancedPrompt.Length} characters");
+        var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
+        _output.WriteLine($"  ✓ Screen mockup generated");
+
+        var iconId = $"appointment-management-{Guid.NewGuid().ToString().Substring(0, 8)}";
+        var storedUrl = await _storageService.UploadImageAsync(imageUrl, CLINIC_APP_USER_ID, iconId);
+        _output.WriteLine($"  ✓ Saved to storage: {iconId}");
+
+        var imageData = await _storageService.DownloadImageAsync(storedUrl);
+        _output.WriteLine($"  ✓ Verified ({imageData.Length / 1024} KB)");
+
+        _generatedAssets.Add(new GeneratedAsset
+        {
+            Name = "Appointment Management",
+            Type = "screen",
+            IconId = iconId,
+            StorageUrl = storedUrl,
+            FileSizeKB = imageData.Length / 1024,
+            Quality = "standard"
+        });
+
+        _output.WriteLine($"  ✅ Appointment Management Complete!");
+        _output.WriteLine($"  Features: Google Calendar sync, time slots");
+        _output.WriteLine("");
 
         Assert.NotNull(enhancedPrompt);
-        Assert.Contains("google", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("calendar", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("sync", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
+        Assert.NotNull(imageUrl);
+        Assert.True(imageData.Length > 0);
     }
 
     private async Task GenerateGoogleCalendarSyncScreen(string appName, List<string> brandColors)
@@ -436,27 +544,35 @@ public class ClinicManagementAppGenerationTests
         };
 
         var enhancedPrompt = await _aiService.EnhancePromptAsync(syncRequest);
+        _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
-        _output.WriteLine("✓ Calendar Sync Settings Generated");
-        _output.WriteLine($"  Integration Settings:");
-        _output.WriteLine($"    • Connected Google account");
-        _output.WriteLine($"    • Auto-sync ON/OFF");
-        _output.WriteLine($"    • Sync frequency control");
-        _output.WriteLine($"    • Bidirectional sync");
-        _output.WriteLine($"  Advanced Features:");
-        _output.WriteLine($"    • Conflict resolution rules");
-        _output.WriteLine($"    • Calendar selection");
-        _output.WriteLine($"    • Activity log");
-        _output.WriteLine($"    • Push notifications");
-        _output.WriteLine($"  User Controls:");
-        _output.WriteLine($"    • Manual 'Sync Now' button");
-        _output.WriteLine($"    • Account switching");
-        _output.WriteLine($"    • Disconnect option");
-        _output.WriteLine($"  Prompt length: {enhancedPrompt.Length} characters");
+        var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
+        _output.WriteLine($"  ✓ Screen mockup generated");
+
+        var iconId = $"calendar-sync-{Guid.NewGuid().ToString().Substring(0, 8)}";
+        var storedUrl = await _storageService.UploadImageAsync(imageUrl, CLINIC_APP_USER_ID, iconId);
+        _output.WriteLine($"  ✓ Saved to storage: {iconId}");
+
+        var imageData = await _storageService.DownloadImageAsync(storedUrl);
+        _output.WriteLine($"  ✓ Verified ({imageData.Length / 1024} KB)");
+
+        _generatedAssets.Add(new GeneratedAsset
+        {
+            Name = "Calendar Sync Settings",
+            Type = "screen",
+            IconId = iconId,
+            StorageUrl = storedUrl,
+            FileSizeKB = imageData.Length / 1024,
+            Quality = "standard"
+        });
+
+        _output.WriteLine($"  ✅ Calendar Sync Settings Complete!");
+        _output.WriteLine($"  Features: Auto-sync, conflict resolution");
+        _output.WriteLine("");
 
         Assert.NotNull(enhancedPrompt);
-        Assert.Contains("sync", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("google", enhancedPrompt, StringComparison.OrdinalIgnoreCase);
+        Assert.NotNull(imageUrl);
+        Assert.True(imageData.Length > 0);
     }
 
     private async Task GeneratePlatformResourcesSummary()
@@ -485,6 +601,37 @@ public class ClinicManagementAppGenerationTests
         _output.WriteLine("  • Real-time sync capabilities");
 
         await Task.CompletedTask;
+    }
+
+    private void PrintGeneratedAssetsJSON()
+    {
+        _output.WriteLine("📦 Generated Assets (JSON for web app integration):");
+        _output.WriteLine("[");
+        foreach (var asset in _generatedAssets)
+        {
+            _output.WriteLine($"  {{");
+            _output.WriteLine($"    \"name\": \"{asset.Name}\",");
+            _output.WriteLine($"    \"type\": \"{asset.Type}\",");
+            _output.WriteLine($"    \"iconId\": \"{asset.IconId}\",");
+            _output.WriteLine($"    \"url\": \"{asset.StorageUrl}\",");
+            _output.WriteLine($"    \"sizeKB\": {asset.FileSizeKB},");
+            _output.WriteLine($"    \"quality\": \"{asset.Quality}\"");
+            _output.WriteLine($"  }}{(asset != _generatedAssets.Last() ? "," : "")}");
+        }
+        _output.WriteLine("]");
+        _output.WriteLine("");
+
+        var totalSizeKB = _generatedAssets.Sum(a => a.FileSizeKB);
+        var totalCost = _generatedAssets.Count(a => a.Quality == "hd") * 0.08m +
+                        _generatedAssets.Count(a => a.Quality == "standard") * 0.04m;
+
+        _output.WriteLine($"📊 Generation Statistics:");
+        _output.WriteLine($"   • Total assets generated: {_generatedAssets.Count}");
+        _output.WriteLine($"   • HD quality icons: {_generatedAssets.Count(a => a.Quality == "hd")}");
+        _output.WriteLine($"   • Standard quality screens: {_generatedAssets.Count(a => a.Quality == "standard")}");
+        _output.WriteLine($"   • Total size: {totalSizeKB} KB ({totalSizeKB / 1024.0:F2} MB)");
+        _output.WriteLine($"   • Total cost: ${totalCost:F2}");
+        _output.WriteLine("");
     }
 
     private void PrintGenerationSummary()

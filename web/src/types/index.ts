@@ -130,8 +130,33 @@ export interface User {
   id: string
   email: string
   name?: string
-  creditsRemaining: number
-  generatedIcons: IconGeneration[]
+  profilePictureUrl?: string
+  credits: number
+  createdAt: string
+  updatedAt: string
+  auth?: UserAuth
+  metadata?: UserMetadata
+  preferences?: UserPreferences
+}
+
+export interface UserAuth {
+  googleId?: string
+  googleEmail?: string
+  lastLoginAt?: string
+}
+
+export interface UserMetadata {
+  lastIconGenerated?: string
+  totalIconsGenerated: number
+  totalCreditsPurchased: number
+  totalCreditsSpent: number
+}
+
+export interface UserPreferences {
+  defaultStyle?: string
+  favoriteColors?: string[]
+  defaultQuality?: 'standard' | 'hd'
+  emailNotifications: boolean
 }
 
 export interface IconGeneration {
@@ -146,7 +171,105 @@ export interface IconGeneration {
   createdAt: string
 }
 
+// Screen Mockup Generation
+export type ScreenType =
+  | 'login'
+  | 'signup'
+  | 'home'
+  | 'dashboard'
+  | 'profile'
+  | 'settings'
+  | 'product-list'
+  | 'product-detail'
+  | 'cart'
+  | 'checkout'
+  | 'orders'
+  | 'patients-list'
+  | 'patient-detail'
+  | 'appointments'
+  | 'calendar-sync'
+
+export type AppCategory =
+  | 'ecommerce'
+  | 'healthcare'
+  | 'fitness'
+  | 'education'
+  | 'finance'
+  | 'social'
+  | 'productivity'
+  | 'travel'
+  | 'food'
+  | 'music'
+  | 'custom'
+
+export interface AppCategoryInfo {
+  id: AppCategory
+  name: string
+  description: string
+  icon: string
+  color: string
+  screens: ScreenType[]
+  features: string[]
+}
+
+export interface ScreenMockupRequest {
+  appName: string
+  category: AppCategory
+  brandColors: string[]
+  screens: ScreenType[]
+  style?: 'Modern' | 'Minimal' | 'Material'
+  quality?: 'standard' | 'hd'
+}
+
+export interface ScreenMockupResponse {
+  id: string
+  screens: ScreenMockupResult[]
+  totalCost: number
+  expiresAt: string
+}
+
+export interface ScreenMockupResult {
+  screenType: ScreenType
+  imageUrl: string
+  prompt: string
+  designScore?: DesignQualityScore
+}
+
+// Authentication
+export interface GoogleAuthRequest {
+  idToken: string
+}
+
+export interface AuthResponse {
+  userId: string
+  email: string
+  name?: string
+  profilePictureUrl?: string
+  credits: number
+  accessToken: string
+  isNewUser: boolean
+}
+
+// Transactions
+export interface Transaction {
+  id: string
+  type: 'purchase' | 'usage'
+  credits: number
+  amountInCents?: number
+  description: string
+  createdAt: string
+}
+
 // Payments
+export interface CreditPackage {
+  id: string
+  name: string
+  credits: number
+  priceInCents: number
+  stripePriceId?: string
+  popular?: boolean
+}
+
 export interface PricingPlan {
   id: string
   name: string
@@ -154,4 +277,11 @@ export interface PricingPlan {
   price: number
   popular?: boolean
   features: string[]
+}
+
+// User Data
+export interface UserData {
+  user: User
+  icons: IconGeneration[]
+  transactions: Transaction[]
 }

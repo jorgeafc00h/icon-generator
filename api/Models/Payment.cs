@@ -11,6 +11,7 @@ public class CreditPackage
 
 public class PurchaseRequest
 {
+    public string UserId { get; set; } = string.Empty;
     public string PackageId { get; set; } = string.Empty;
     public string? SuccessUrl { get; set; }
     public string? CancelUrl { get; set; }

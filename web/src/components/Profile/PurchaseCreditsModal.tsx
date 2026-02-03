@@ -12,12 +12,14 @@ const creditPackages: CreditPackage[] = [
     id: 'starter',
     name: 'Starter',
     credits: 50,
+    bonusCredits: 5,
     priceInCents: 499, // $4.99
   },
   {
     id: 'popular',
     name: 'Popular',
     credits: 150,
+    bonusCredits: 20,
     priceInCents: 999, // $9.99
     popular: true,
   },
@@ -25,12 +27,14 @@ const creditPackages: CreditPackage[] = [
     id: 'pro',
     name: 'Professional',
     credits: 500,
+    bonusCredits: 75,
     priceInCents: 2999, // $29.99
   },
   {
     id: 'business',
     name: 'Business',
     credits: 1500,
+    bonusCredits: 250,
     priceInCents: 7999, // $79.99
   },
 ]

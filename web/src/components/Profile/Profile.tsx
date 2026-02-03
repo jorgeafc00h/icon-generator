@@ -16,13 +16,25 @@ import toast from 'react-hot-toast'
 import { GoogleSignIn } from './GoogleSignIn'
 import { PurchaseCreditsModal } from './PurchaseCreditsModal'
 
-export function Profile() {
+interface ProfileProps {
+  onUserUpdate?: () => void
+}
+
+export function Profile({ onUserUpdate }: ProfileProps) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [showPurchaseModal, setShowPurchaseModal] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'settings'>('overview')
 
   useEffect(() => {
+    // Check for OAuth callback first (hash in URL)
+    const hash = window.location.hash
+    if (hash && hash.includes('id_token=')) {
+      console.log('OAuth callback detected in Profile, waiting for GoogleSignIn to process...')
+      setLoading(false)
+      return // Let GoogleSignIn component handle the callback
+    }
+
     // Check for payment callback
     const urlParams = new URLSearchParams(window.location.search)
     const paymentStatus = urlParams.get('payment')
@@ -87,6 +99,7 @@ export function Profile() {
   }
 
   const handleGoogleSignIn = (authResponse: any) => {
+    console.log('Sign in successful:', authResponse)
     localStorage.setItem('accessToken', authResponse.accessToken)
     localStorage.setItem('userId', authResponse.userId)
     setUser({
@@ -106,12 +119,21 @@ export function Profile() {
         emailNotifications: true
       }
     })
+
+    // Notify parent component
+    if (onUserUpdate) {
+      onUserUpdate()
+    }
   }
 
   const handleSignOut = () => {
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('userId')
+    localStorage.clear()
     setUser(null)
+
+    // Notify parent component
+    if (onUserUpdate) {
+      onUserUpdate()
+    }
   }
 
   if (loading) {
@@ -125,45 +147,94 @@ export function Profile() {
   // Not logged in
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex items-center justify-center px-4 py-12">
+        <div className="max-w-2xl w-full">
           {/* Hero Card */}
-          <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
-              <UserIcon size={40} className="text-white" />
+          <div className="bg-white rounded-3xl shadow-2xl overflow-hidden">
+            {/* Header Section with Gradient */}
+            <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 px-8 py-12 text-center relative overflow-hidden">
+              <div className="absolute inset-0 bg-black opacity-5"></div>
+              <div className="relative z-10">
+                <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
+                  <Sparkles size={48} className="text-white" />
+                </div>
+                <h1 className="text-4xl md:text-5xl font-bold mb-3 text-white">
+                  Welcome to IconGen AI
+                </h1>
+                <p className="text-xl text-white/90 max-w-md mx-auto">
+                  Create stunning app icons in seconds with AI-powered design
+                </p>
+              </div>
             </div>
 
-            <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              Welcome to Icon Generator
-            </h1>
-            <p className="text-gray-600 mb-8">
-              Sign in to create beautiful app icons with AI
-            </p>
+            {/* Sign In Section */}
+            <div className="px-8 py-10">
+              <div className="mb-8">
+                <GoogleSignIn variant="large" onSuccess={handleGoogleSignIn} />
+              </div>
 
-            <GoogleSignIn onSuccess={handleGoogleSignIn} />
+              {/* Benefits Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="text-center p-6 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="font-bold text-2xl text-blue-600 mb-2">2 Credits</div>
+                  <div className="text-sm text-gray-600">Free to start</div>
+                </div>
 
-            <div className="mt-8 pt-8 border-t border-gray-200">
-              <h3 className="font-semibold text-gray-900 mb-4">What you'll get:</h3>
-              <div className="space-y-3 text-left">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div>
-                    <div className="font-medium text-gray-900">2 Free Credits</div>
-                    <div className="text-sm text-gray-600">Start creating immediately</div>
+                <div className="text-center p-6 rounded-xl bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+                  <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="w-6 h-6 text-white" />
                   </div>
+                  <div className="font-bold text-2xl text-purple-600 mb-2">18+ Styles</div>
+                  <div className="text-sm text-gray-600">AI-powered variety</div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <TrendingUp className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div>
-                    <div className="font-medium text-gray-900">18+ AI Styles</div>
-                    <div className="text-sm text-gray-600">3D, Minimal, Gradient & more</div>
+
+                <div className="text-center p-6 rounded-xl bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200">
+                  <div className="w-12 h-12 bg-pink-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Download className="w-6 h-6 text-white" />
                   </div>
+                  <div className="font-bold text-2xl text-pink-600 mb-2">All Platforms</div>
+                  <div className="text-sm text-gray-600">iOS, Android, Web</div>
                 </div>
-                <div className="flex items-start gap-3">
-                  <Download className="w-5 h-5 text-blue-600 mt-0.5" />
-                  <div>
-                    <div className="font-medium text-gray-900">Platform Assets</div>
-                    <div className="text-sm text-gray-600">iOS, Android, Web, macOS</div>
+              </div>
+
+              {/* Features List */}
+              <div className="bg-gray-50 rounded-xl p-6">
+                <h3 className="font-bold text-gray-900 mb-4 text-center">Everything you need to launch</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-sm text-gray-700">1024x1024 HD quality</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-sm text-gray-700">Commercial license</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-sm text-gray-700">Instant generation</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <span className="text-sm text-gray-700">No design skills needed</span>
                   </div>
                 </div>
               </div>
@@ -171,7 +242,7 @@ export function Profile() {
           </div>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            By signing in, you agree to our Terms of Service and Privacy Policy
+            By signing in, you agree to our <a href="#" className="text-blue-600 hover:underline">Terms of Service</a> and <a href="#" className="text-blue-600 hover:underline">Privacy Policy</a>
           </p>
         </div>
       </div>

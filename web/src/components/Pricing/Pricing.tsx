@@ -1,5 +1,9 @@
 import { Check, Zap, Star, Rocket } from 'lucide-react'
 
+interface PricingProps {
+  onNavigate?: (page: any) => void
+}
+
 const plans = [
   {
     name: 'Starter',
@@ -28,7 +32,22 @@ const plans = [
   },
 ]
 
-export function Pricing() {
+export function Pricing({ onNavigate }: PricingProps) {
+  const handleGetStarted = () => {
+    // Check if user is logged in
+    const accessToken = localStorage.getItem('accessToken')
+    if (!accessToken) {
+      // Redirect to profile to sign in
+      if (onNavigate) {
+        onNavigate('profile')
+      }
+    } else {
+      // Already logged in, go to pricing/purchase
+      if (onNavigate) {
+        onNavigate('profile') // Profile has the purchase modal
+      }
+    }
+  }
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-12">
@@ -83,6 +102,7 @@ export function Pricing() {
               </ul>
 
               <button
+                onClick={handleGetStarted}
                 className={`w-full py-3 rounded-lg font-semibold transition-all ${
                   plan.popular
                     ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg'

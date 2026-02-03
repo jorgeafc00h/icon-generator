@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Header } from './components/Layout/Header'
 import { Footer } from './components/Layout/Footer'
 import { IconGenerator } from './components/IconGenerator/IconGenerator'
@@ -8,6 +8,7 @@ import { AppResources } from './components/AppResources/AppResources'
 import { Dashboard } from './components/Dashboard/Dashboard'
 import { Pricing } from './components/Pricing/Pricing'
 import { Profile } from './components/Profile/Profile'
+import type { User } from './types'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -22,6 +23,53 @@ type Page = 'generator' | 'resources' | 'dashboard' | 'pricing' | 'profile'
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('generator')
+  const [user, setUser] = useState<User | null>(null)
+  const [loadingUser, setLoadingUser] = useState(true)
+
+  useEffect(() => {
+    // Load user data on app mount
+    loadUserData()
+  }, [])
+
+  const loadUserData = async () => {
+    try {
+      const accessToken = localStorage.getItem('accessToken')
+      const userId = localStorage.getItem('userId')
+
+      if (!accessToken || !userId) {
+        setLoadingUser(false)
+        return
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_ENDPOINT}/users/${userId}`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired, clear storage
+          localStorage.clear()
+          setUser(null)
+        }
+        setLoadingUser(false)
+        return
+      }
+
+      const userData = await response.json()
+      setUser(userData)
+    } catch (error) {
+      console.error('Error loading user data:', error)
+    } finally {
+      setLoadingUser(false)
+    }
+  }
+
+  const handleUserUpdate = () => {
+    // Reload user data
+    loadUserData()
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -34,14 +82,14 @@ function App() {
         </div>
 
         <div className="relative z-10 flex flex-col min-h-screen">
-          <Header currentPage={currentPage} onNavigate={setCurrentPage} />
+          <Header currentPage={currentPage} onNavigate={setCurrentPage} user={user} />
 
           <main className="flex-1 animate-slide-in">
             {currentPage === 'generator' && <IconGenerator />}
             {currentPage === 'resources' && <AppResources />}
             {currentPage === 'dashboard' && <Dashboard />}
-            {currentPage === 'pricing' && <Pricing />}
-            {currentPage === 'profile' && <Profile />}
+            {currentPage === 'pricing' && <Pricing onNavigate={setCurrentPage} />}
+            {currentPage === 'profile' && <Profile onUserUpdate={handleUserUpdate} />}
           </main>
 
           <Footer />

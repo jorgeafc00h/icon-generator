@@ -52,23 +52,52 @@ export function Header({ currentPage, onNavigate, user }: HeaderProps) {
 
           {/* CTA Buttons */}
           <div className="flex items-center gap-2 md:gap-3">
-            {user && (
+            {user ? (
+              <>
+                {/* Credits Display */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+                  <CreditCard className="w-4 h-4 text-gray-600" />
+                  <span className="hidden sm:inline text-sm text-gray-600">Credits:</span>
+                  <span className="font-bold text-blue-600">
+                    {user.isUnlimited ? '∞' : user.credits}
+                  </span>
+                </div>
+
+                {/* Profile Picture */}
+                <button
+                  onClick={() => onNavigate('profile')}
+                  className="flex items-center gap-2 px-2 py-2 hover:bg-gray-50 rounded-lg transition-colors"
+                  title={user.name || user.email}
+                >
+                  {user.profilePictureUrl ? (
+                    <img
+                      src={user.profilePictureUrl}
+                      alt={user.name || user.email}
+                      className="w-8 h-8 rounded-full ring-2 ring-blue-100 hover:ring-blue-300 transition-all"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold ring-2 ring-blue-100">
+                      {(user.name || user.email).charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className="hidden md:inline text-sm font-medium text-gray-700">
+                    {user.name || user.email.split('@')[0]}
+                  </span>
+                </button>
+              </>
+            ) : (
               <button
                 onClick={() => onNavigate('profile')}
-                className="flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors bg-gray-50 rounded-lg hover:bg-gray-100"
+                className="px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 text-sm md:text-base"
               >
-                <CreditCard className="w-4 h-4" />
-                <span className="hidden sm:inline">Credits:</span>
-                <span className="font-bold text-blue-600">
-                  {user.isUnlimited ? '∞' : user.credits}
-                </span>
+                Sign In
               </button>
             )}
 
-            {(!user || !user.isUnlimited) && (
+            {user && !user.isUnlimited && (
               <button
                 onClick={() => onNavigate('pricing')}
-                className="px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 text-sm md:text-base"
+                className="hidden sm:block px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:shadow-lg transition-all text-sm"
               >
                 Buy Credits
               </button>

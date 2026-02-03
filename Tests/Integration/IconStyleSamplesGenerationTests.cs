@@ -168,7 +168,7 @@ public class IconStyleSamplesGenerationTests
     };
 
     [Fact(DisplayName = "Should generate 2 sample icons for each style (36 total)"
-    ,Skip = "Costs money - remove Skip to generate samples"
+   // ,Skip = "Costs money - remove Skip to generate samples"
      )]
     public async Task ShouldGenerateAllStyleSamples()
     {

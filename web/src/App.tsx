@@ -25,19 +25,53 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50">
-        <Header currentPage={currentPage} onNavigate={setCurrentPage} />
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '1s' }}></div>
+          <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
+        </div>
 
-        <main className="flex-1">
-          {currentPage === 'generator' && <IconGenerator />}
-          {currentPage === 'resources' && <AppResources />}
-          {currentPage === 'dashboard' && <Dashboard />}
-          {currentPage === 'pricing' && <Pricing />}
-          {currentPage === 'profile' && <Profile />}
-        </main>
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <Header currentPage={currentPage} onNavigate={setCurrentPage} />
 
-        <Footer />
-        <Toaster position="top-right" />
+          <main className="flex-1 animate-slide-in">
+            {currentPage === 'generator' && <IconGenerator />}
+            {currentPage === 'resources' && <AppResources />}
+            {currentPage === 'dashboard' && <Dashboard />}
+            {currentPage === 'pricing' && <Pricing />}
+            {currentPage === 'profile' && <Profile />}
+          </main>
+
+          <Footer />
+        </div>
+        <Toaster 
+          position="top-right"
+          toastOptions={{
+            className: 'animate-scale-in',
+            duration: 4000,
+            style: {
+              background: '#fff',
+              color: '#333',
+              boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
+              borderRadius: '12px',
+              padding: '16px',
+            },
+            success: {
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#ef4444',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
       </div>
     </QueryClientProvider>
   )

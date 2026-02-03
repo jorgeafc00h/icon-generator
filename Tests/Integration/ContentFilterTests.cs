@@ -1,9 +1,10 @@
 using IconGenerator.Functions.Models;
 using IconGenerator.Functions.Services;
 using Microsoft.Extensions.Logging;
-using Moq;
+using Microsoft.Extensions.Logging.Abstractions;
+using Xunit;
 
-namespace IconGenerator.Tests.PromptVerifier;
+namespace IconGenerator.Tests.Integration;
 
 /// <summary>
 /// Test to verify prompt sanitization prevents content filter violations
@@ -14,8 +15,8 @@ public class ContentFilterTests
     public void BuildIconUserPrompt_ProducesShortNaturalLanguagePrompt()
     {
         // Arrange
-        var logger = new Mock<ILogger<PromptEngineeringService>>();
-        var service = new PromptEngineeringService(logger.Object);
+        var logger = NullLogger<PromptEngineeringService>.Instance;
+        var service = new PromptEngineeringService(logger);
         
         var request = new IconGenerationRequest
         {
@@ -51,8 +52,8 @@ public class ContentFilterTests
     public void BuildIconSystemPrompt_ProducesSimplifiedGuidelines()
     {
         // Arrange
-        var logger = new Mock<ILogger<PromptEngineeringService>>();
-        var service = new PromptEngineeringService(logger.Object);
+        var logger = NullLogger<PromptEngineeringService>.Instance;
+        var service = new PromptEngineeringService(logger);
 
         // Act
         var systemPrompt = service.BuildIconSystemPrompt("3D");
@@ -79,8 +80,8 @@ public class ContentFilterTests
     public void BuildIconUserPrompt_TravelApp_NoContentViolation()
     {
         // Arrange - Test case from the actual error
-        var logger = new Mock<ILogger<PromptEngineeringService>>();
-        var service = new PromptEngineeringService(logger.Object);
+        var logger = NullLogger<PromptEngineeringService>.Instance;
+        var service = new PromptEngineeringService(logger);
         
         var request = new IconGenerationRequest
         {
@@ -111,8 +112,8 @@ public class ContentFilterTests
     public void SanitizePrompt_RemovesProblematicPatterns()
     {
         // Arrange
-        var logger = new Mock<ILogger<PromptEngineeringService>>();
-        var service = new PromptEngineeringService(logger.Object);
+        var logger = NullLogger<PromptEngineeringService>.Instance;
+        var service = new PromptEngineeringService(logger);
         
         // Create a request with potentially problematic content
         var request = new IconGenerationRequest

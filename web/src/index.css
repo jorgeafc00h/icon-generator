@@ -103,18 +103,72 @@
     transform: translateY(0px);
   }
   50% {
-    transform: translateY(-20px);
+    transform: translateY(-10px);
   }
 }
 
-.style-card {
-  @apply relative overflow-hidden rounded-xl border-2 border-gray-200 bg-white p-4 transition-all duration-200 cursor-pointer hover:shadow-lg hover:-translate-y-1;
+.animate-slide-in {
+  animation: slideIn 0.5s ease-out;
 }
 
-.style-card.selected {
-  @apply border-blue-500 bg-blue-50 shadow-lg;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .color-well {
-  @apply w-16 h-16 rounded-full cursor-pointer border-4 border-white shadow-md transition-transform hover:scale-110;
+  @apply w-16 h-16 rounded-full cursor-pointer border-4 border-white shadow-lg transition-all hover:scale-110 hover:shadow-xl active:scale-95;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced focus states */
+button:focus-visible,
+input:focus-visible {
+  @apply ring-4 ring-blue-500 ring-opacity-50 outline-none;
+}
+
+/* Loading skeleton animation */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #f8f8f8 50%,
+    #f0f0f0 100%
+  );
+  background-size: 1000px 100%;
 }

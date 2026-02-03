@@ -8,12 +8,16 @@ interface ColorPickerProps {
 }
 
 const presetPalettes = [
-  { name: 'Ocean', colors: ['#667EEA', '#764BA2'] },
-  { name: 'Sunset', colors: ['#FF6B6B', '#FFE66D'] },
-  { name: 'Forest', colors: ['#11998E', '#38EF7D'] },
-  { name: 'Fire', colors: ['#F2994A', '#EB5757'] },
-  { name: 'Royal', colors: ['#8E2DE2', '#4A00E0'] },
-  { name: 'Candy', colors: ['#FF3CAC', '#784BA0', '#2B86C5'] },
+  { name: 'Ocean', colors: ['#667EEA', '#764BA2'], emoji: '🌊' },
+  { name: 'Sunset', colors: ['#FF6B6B', '#FFE66D'], emoji: '🌅' },
+  { name: 'Forest', colors: ['#11998E', '#38EF7D'], emoji: '🌲' },
+  { name: 'Fire', colors: ['#F2994A', '#EB5757'], emoji: '🔥' },
+  { name: 'Royal', colors: ['#8E2DE2', '#4A00E0'], emoji: '👑' },
+  { name: 'Candy', colors: ['#FF3CAC', '#784BA0', '#2B86C5'], emoji: '🍬' },
+  { name: 'Mint', colors: ['#4ECDC4', '#45B7D1'], emoji: '🌿' },
+  { name: 'Rose', colors: ['#FF6B9D', '#C06C84'], emoji: '🌹' },
+  { name: 'Tech', colors: ['#00F5FF', '#0066FF'], emoji: '⚡' },
+  { name: 'Earth', colors: ['#8B7355', '#D4A574'], emoji: '🌍' },
 ]
 
 export function ColorPicker({ colors, onChange }: ColorPickerProps) {
@@ -97,24 +101,27 @@ export function ColorPicker({ colors, onChange }: ColorPickerProps) {
 
       {/* Preset Palettes */}
       <div>
-        <p className="text-sm font-medium text-gray-700 mb-2">Quick Palettes</p>
-        <div className="grid grid-cols-3 gap-2">
+        <p className="text-sm font-medium text-gray-700 mb-3">✨ Quick Palettes</p>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {presetPalettes.map((palette) => (
             <button
               key={palette.name}
               onClick={() => applyPreset(palette.colors)}
-              className="p-2 border border-gray-200 rounded-lg hover:border-blue-500 hover:shadow-md transition-all"
+              className="group p-3 border-2 border-gray-200 rounded-xl hover:border-blue-500 hover:shadow-lg transition-all duration-200"
+              title={`Apply ${palette.name} palette`}
             >
-              <div className="flex gap-1 mb-1">
+              <div className="flex gap-1 mb-2 h-8 rounded-lg overflow-hidden shadow-sm">
                 {palette.colors.map((color, i) => (
                   <div
                     key={i}
-                    className="flex-1 h-6 rounded"
+                    className="flex-1"
                     style={{ backgroundColor: color }}
                   />
                 ))}
               </div>
-              <p className="text-xs text-gray-600">{palette.name}</p>
+              <p className="text-xs font-medium text-gray-700 group-hover:text-blue-600 transition-colors">
+                {palette.emoji} {palette.name}
+              </p>
             </button>
           ))}
         </div>

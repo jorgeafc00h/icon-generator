@@ -2,9 +2,10 @@
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": [
-      "/images/**",
-      "/assets/**",
-      "/*.{js,css,json,svg,png,jpg,jpeg,gif,webp,ico,woff,woff2,ttf,eot}"
+      "/images/*",
+      "/assets/*",
+      "/vite.svg",
+      "/favicon.ico"
     ]
   },
   "mimeTypes": {

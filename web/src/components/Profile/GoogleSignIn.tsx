@@ -18,21 +18,35 @@ export function GoogleSignIn({ onSuccess, onError, variant = 'default' }: Google
   const [processing, setProcessing] = useState(false)
 
   useEffect(() => {
+    console.log('===== GoogleSignIn component mounted =====')
+
     // Check for auth callback on component mount
     // ID token will be in URL hash (after #)
     const hash = window.location.hash
-    console.log('Checking for OAuth callback, hash:', hash ? 'present' : 'none')
+    console.log('Full URL:', window.location.href)
+    console.log('Hash:', hash)
+    console.log('Hash length:', hash.length)
 
     if (hash) {
-      const params = new URLSearchParams(hash.substring(1))
+      // Try parsing hash
+      const hashContent = hash.substring(1) // Remove #
+      console.log('Hash content (first 100 chars):', hashContent.substring(0, 100))
+
+      const params = new URLSearchParams(hashContent)
       const idToken = params.get('id_token')
 
-      console.log('ID token found:', idToken ? 'yes' : 'no')
+      console.log('Parsed params:', Array.from(params.keys()))
+      console.log('ID token exists:', !!idToken)
+      console.log('ID token length:', idToken?.length || 0)
 
       if (idToken) {
-        console.log('Processing ID token...')
+        console.log('✅ Found ID token, calling handleAuthCallback')
         handleAuthCallback(idToken)
+      } else {
+        console.log('❌ No ID token found in hash')
       }
+    } else {
+      console.log('No hash in URL')
     }
   }, [])
 

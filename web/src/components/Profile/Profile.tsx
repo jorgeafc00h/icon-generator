@@ -146,6 +146,7 @@ export function Profile({ onUserUpdate }: ProfileProps) {
 
   // Not logged in
   if (!user) {
+    console.log('===== Profile: Rendering login UI (user is null) =====')
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 flex items-center justify-center px-4 py-12">
         <div className="max-w-2xl w-full">

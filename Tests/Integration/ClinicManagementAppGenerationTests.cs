@@ -53,7 +53,7 @@ public class ClinicManagementAppGenerationTests
         public string Quality { get; set; } = "";
     }
 
-    [Fact(DisplayName = "Should generate complete clinic management app resources")]
+    [Fact(DisplayName = "Should generate complete clinic  medical management app resources")]
     public async Task ShouldGenerateCompleteClinicManagementAppResources()
     {
         _output.WriteLine("╔══════════════════════════════════════════════════════════════╗");

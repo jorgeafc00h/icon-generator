@@ -295,7 +295,9 @@ public class IconStyleSamplesGenerationTests
             $"At least 80% of samples should be generated successfully. Got {generatedSamples.Count}/{totalIcons}");
     }
 
-    [Theory(DisplayName = "Should generate sample icon for specific style", Skip = "Costs money - remove Skip to generate")]
+    [Theory(DisplayName = "Should generate sample icon for specific style"
+    //, Skip = "Costs money - remove Skip to generate"
+    )]
     [InlineData("3D", "Music Player", "audio player app with headphones and equalizer")]
     [InlineData("Minimal", "Weather App", "weather forecast app with simple icons")]
     [InlineData("Gradient", "Social Network", "social media networking app")]

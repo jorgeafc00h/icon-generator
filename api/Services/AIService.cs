@@ -111,10 +111,23 @@ public class AIService : IAIService
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         }
 
-        // Limit prompt length to reduce filter triggers (max 400 chars for DALL-E prompts)
-        if (sanitized.Length > 400)
+        // Add edge-to-edge reinforcement if not present
+        if (!sanitized.Contains("edge", StringComparison.OrdinalIgnoreCase) && 
+            !sanitized.Contains("bleed", StringComparison.OrdinalIgnoreCase))
         {
-            sanitized = sanitized.Substring(0, 397) + "...";
+            sanitized += " Icon extends to canvas edges with no padding or margins.";
+        }
+
+        // Limit prompt length to reduce filter triggers (max 400 chars for DALL-E prompts)
+        if (sanitized.Length > 450)
+        {
+            // Try to preserve edge-to-edge language if present
+            var edgeLanguage = System.Text.RegularExpressions.Regex.Match(
+                sanitized, 
+                @"(edge[^.]*\.|bleed[^.]*\.|no padding[^.]*\.)", 
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase).Value;
+            
+            sanitized = sanitized.Substring(0, 400 - edgeLanguage.Length) + " " + edgeLanguage;
         }
 
         // Clean up any double spaces or awkward formatting

@@ -9,13 +9,12 @@ import geometricAnalytics from '../assets/samples/geometric-analytics-86939866.p
 import glassmorphismCalendar from '../assets/samples/glassmorphism-calendar-48a2ed16.png'
 import glassmorphismMessaging from '../assets/samples/glassmorphism-messaging-39a05052.png'
 import gradientPhoto from '../assets/samples/gradient-photo-editor-90fa82e4.png'
-import handDrawnJournal from '../assets/samples/hand-drawn-journal-09cef298.png'
 import handDrawnNotes from '../assets/samples/hand-drawn-notes-58833bf9.png'
 import isometricCity from '../assets/samples/isometric-city-builder-e77d501e.png'
-import isometricDelivery from '../assets/samples/isometric-delivery-6172e83f.png'
+import isometricDeliveryB from '../assets/samples/isometric-delivery-6172e83f.png'
 import metallicTools from '../assets/samples/metallic-tools-aff85f6b.png'
-import minimalWeather from '../assets/samples/minimal-weather-app-96254c75.png'
-import minimalTask from '../assets/samples/minimal-task-manager-4b6b1673.png'
+import minimalTask from '../assets/samples/minimal-task-manager-7cb9c19f.png'
+import minimalWeather from '../assets/samples/minimal-weather-app-d82e5a5f.png'
 import neonMusic from '../assets/samples/neon-music-festival-903ac63e.png'
 import pixelGaming from '../assets/samples/pixel-gaming-cf3bef66.png'
 import pixelMusic from '../assets/samples/pixel-music-creator-69436e40.png'
@@ -69,8 +68,8 @@ export const styleSamples: Record<IconStyle, SampleImage> = {
     alt: 'City Builder - Isometric Style'
   },
   'Hand-drawn': {
-    src: handDrawnJournal,
-    alt: 'Journal - Hand-drawn Style'
+    src: handDrawnNotes,
+    alt: 'Notes - Hand-drawn Style'
   },
   'Geometric': {
     src: geometricAnalytics,
@@ -83,6 +82,10 @@ export const styleSamples: Record<IconStyle, SampleImage> = {
   'Neon': {
     src: neonMusic,
     alt: 'Music Festival - Neon Style'
+  },
+  'Retro': {
+    src: pixelGaming,
+    alt: 'Arcade - Retro Style'
   },
   'Watercolor': {
     src: watercolorGarden,
@@ -112,8 +115,8 @@ export const allSamples = {
   geometric: [geometricAnalytics],
   glassmorphism: [glassmorphismCalendar, glassmorphismMessaging],
   gradient: [gradientPhoto],
-  handDrawn: [handDrawnJournal, handDrawnNotes],
-  isometric: [isometricCity, isometricDelivery],
+  handDrawn: [handDrawnNotes],
+  isometric: [isometricCity, isometricDeliveryB],
   metallic: [metallicTools],
   minimal: [minimalWeather, minimalTask],
   neon: [neonMusic],

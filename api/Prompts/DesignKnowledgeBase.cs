@@ -172,15 +172,22 @@ NEOMORPHISM (SOFT UI) GUIDELINES:
 ";
 
         public const string Claymorphism = @"
-CLAY/3D ILLUSTRATION STYLE:
-- Soft, matte finish (no harsh reflections)
-- Rounded, organic shapes
-- Pastel or saturated color palette
-- Exaggerated proportions (cute, friendly)
-- Smooth curves and blob-like forms
-- Subtle ambient occlusion shadows
-- Pixar/Dribbble inspiration
-- Playful and approachable
+CLAY 3D RENDER STYLE (PROFESSIONAL STUDIO QUALITY):
+- High-quality 3D clay render with smooth, matte finish
+- Soft plasticine/modeling clay texture with zero shininess
+- Professionally lit: soft studio lighting from multiple angles
+- Rounded, puffy organic shapes with thick, solid volumes
+- Rich, saturated colors (vivid but not neon - think real clay colors)
+- Smooth beveled edges and soft transitions between forms
+- Subtle ambient occlusion in crevices and contact points
+- Clean, professional product photography aesthetic
+- Centered on neutral gradient background (light gray to white)
+- Multiple layers or stacked elements for depth
+- Slightly exaggerated, friendly proportions
+- Perfect for: food items, objects, characters, everyday items
+- Reference: Behance/Dribbble clay renders, studio product shots
+- NO text, NO labels, NO flat illustrations
+- Think: high-end toy design or advertising product render
 ";
 
         public const string Pixel = @"

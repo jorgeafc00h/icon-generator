@@ -24,6 +24,7 @@ import minimalTask from '../assets/samples/minimal-task-manager-4b6b1673.png'
 import neonMusic from '../assets/samples/neon-music-festival-903ac63e.png'
 import pixelGaming from '../assets/samples/pixel-gaming-cf3bef66.png'
 import pixelMusic from '../assets/samples/pixel-music-creator-3d2a1dec.png'
+import realisticCamera from '../assets/samples/realistic-camera-edb6b32e.png'
 import realisticRealEstate from '../assets/samples/realistic-real-estate-ca3fdc1b.png'
 import retroArcade from '../assets/samples/retro-arcade-8eeae802.png'
 import watercolorGarden from '../assets/samples/watercolor-garden-89eb5f63.png'
@@ -59,8 +60,8 @@ export const styleSamples: Record<IconStyle, SampleImage> = {
     alt: 'Task Manager - Neomorphism Style'
   },
   'Clay': {
-    src: clayTravel,
-    alt: 'Travel App - Clay Style'
+    src: clayCooking,
+    alt: 'Cooking App - Clay Style'
   },
   'Pixel': {
     src: pixelGaming,
@@ -71,8 +72,8 @@ export const styleSamples: Record<IconStyle, SampleImage> = {
     alt: 'Shopping - Flat Design Style'
   },
   'Isometric': {
-    src: isometricCity,
-    alt: 'City Builder - Isometric Style'
+    src: isometricDelivery,
+    alt: 'Delivery - Isometric Style'
   },
   'Hand-drawn': {
     src: handDrawnJournal,
@@ -99,16 +100,16 @@ export const styleSamples: Record<IconStyle, SampleImage> = {
     alt: 'Garden - Watercolor Style'
   },
   'Metallic': {
-    src: metallicLuxury,
-    alt: 'Luxury - Metallic Style'
+    src: metallicTools,
+    alt: 'Tools - Metallic Style'
   },
   'Cartoon': {
     src: cartoonKids,
     alt: 'Kids Learning - Cartoon Style'
   },
   'Realistic': {
-    src: realisticRealEstate,
-    alt: 'Real Estate - Realistic Style'
+    src: realisticCamera,
+    alt: 'Camera - Realistic Style'
   }
 }
 

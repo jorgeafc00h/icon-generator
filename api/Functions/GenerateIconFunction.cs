@@ -4,8 +4,10 @@ using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using IconGenerator.Functions.Models;
 using IconGenerator.Functions.Services;
+using IconGenerator.Functions.Options;
 
 public class GenerateIconFunction
 {
@@ -13,17 +15,20 @@ public class GenerateIconFunction
     private readonly IStorageService _storageService;
     private readonly IDatabaseService _databaseService;
     private readonly ILogger<GenerateIconFunction> _logger;
+    private readonly AppSettingsOptions _appSettings;
 
     public GenerateIconFunction(
         IAIService aiService,
         IStorageService storageService,
         IDatabaseService databaseService,
-        ILogger<GenerateIconFunction> logger)
+        ILogger<GenerateIconFunction> logger,
+        IOptions<AppSettingsOptions> appSettings)
     {
         _aiService = aiService;
         _storageService = storageService;
         _databaseService = databaseService;
         _logger = logger;
+        _appSettings = appSettings.Value;
     }
 
     [Function("GenerateIcon")]
@@ -61,11 +66,24 @@ public class GenerateIconFunction
                 return await CreateErrorResponse(req, HttpStatusCode.BadRequest, "At least one color is required");
             }
 
-            // Check and deduct credits
-            var hasCredits = await _databaseService.DeductCreditsAsync(userId, 1, cancellationToken);
-            if (!hasCredits)
+            // Check if user has unlimited access
+            var user = await _databaseService.GetUserAsync(userId, cancellationToken);
+            var isUnlimitedUser = user != null &&
+                                  !string.IsNullOrEmpty(user.Email) &&
+                                  _appSettings.UnlimitedUsers.Contains(user.Email, StringComparer.OrdinalIgnoreCase);
+
+            // Check and deduct credits (skip for unlimited users)
+            if (!isUnlimitedUser)
             {
-                return await CreateErrorResponse(req, HttpStatusCode.PaymentRequired, "Insufficient credits");
+                var hasCredits = await _databaseService.DeductCreditsAsync(userId, 1, cancellationToken);
+                if (!hasCredits)
+                {
+                    return await CreateErrorResponse(req, HttpStatusCode.PaymentRequired, "Insufficient credits");
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Unlimited user {Email} generating icon without credit deduction", user.Email);
             }
 
             try
@@ -99,19 +117,22 @@ public class GenerateIconFunction
 
                 await _databaseService.SaveIconGenerationAsync(iconGeneration, cancellationToken);
 
-                // Record transaction
-                var transaction = new Transaction
+                // Record transaction (only for non-unlimited users)
+                if (!isUnlimitedUser)
                 {
-                    UserId = userId,
-                    Type = "usage",
-                    Credits = -1,
-                    Description = $"Generated icon: {request.Keywords}"
-                };
-                await _databaseService.SaveTransactionAsync(transaction, cancellationToken);
+                    var transaction = new Transaction
+                    {
+                        UserId = userId,
+                        Type = "usage",
+                        Credits = -1,
+                        Description = $"Generated icon: {request.Keywords}"
+                    };
+                    await _databaseService.SaveTransactionAsync(transaction, cancellationToken);
+                }
 
                 // Get updated user data
-                var user = await _databaseService.GetUserAsync(userId, cancellationToken);
-                var creditsRemaining = user?.Credits ?? 0;
+                var updatedUser = await _databaseService.GetUserAsync(userId, cancellationToken);
+                var creditsRemaining = isUnlimitedUser ? int.MaxValue : (updatedUser?.Credits ?? 0);
 
                 // Return response
                 var response = new IconGenerationResponse
@@ -128,9 +149,16 @@ public class GenerateIconFunction
             }
             catch (Exception ex)
             {
-                // Refund credit on error
-                _logger.LogError(ex, "Error generating icon, refunding credit");
-                await _databaseService.AddCreditsAsync(userId, 1, cancellationToken);
+                // Refund credit on error (only for non-unlimited users)
+                if (!isUnlimitedUser)
+                {
+                    _logger.LogError(ex, "Error generating icon, refunding credit");
+                    await _databaseService.AddCreditsAsync(userId, 1, cancellationToken);
+                }
+                else
+                {
+                    _logger.LogError(ex, "Error generating icon for unlimited user {Email}", user?.Email);
+                }
                 throw;
             }
         }

@@ -58,7 +58,8 @@ public class StripePaymentService : IPaymentService
                 {
                     { "userId", userId },
                     { "packageId", package.Id },
-                    { "credits", package.Credits.ToString() }
+                    { "credits", package.Credits.ToString() },
+                    { "bonusCredits", package.BonusCredits.ToString() }
                 }
             };
 
@@ -141,6 +142,7 @@ public class StripePaymentService : IPaymentService
             var userId = session.Metadata?["userId"];
             var packageId = session.Metadata?["packageId"];
             var creditsStr = session.Metadata?["credits"];
+            var bonusCreditsStr = session.Metadata?["bonusCredits"];
 
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(creditsStr))
             {
@@ -154,25 +156,38 @@ public class StripePaymentService : IPaymentService
                 return false;
             }
 
+            // Parse bonus credits (default to 0 if not present or invalid)
+            if (!int.TryParse(bonusCreditsStr, out var bonusCredits))
+            {
+                bonusCredits = 0;
+            }
+
+            // Calculate total credits (base + bonus)
+            var totalCredits = credits + bonusCredits;
+
             // Add credits to user
-            var user = await _databaseService.AddCreditsAsync(userId, credits, cancellationToken);
+            var user = await _databaseService.AddCreditsAsync(userId, totalCredits, cancellationToken);
 
             // Save transaction record
+            var transactionDescription = bonusCredits > 0
+                ? $"Purchased {credits} credits + {bonusCredits} bonus credits"
+                : $"Purchased {credits} credits";
+
             var transaction = new Transaction
             {
                 UserId = userId,
                 Type = "purchase",
-                Credits = credits,
+                Credits = totalCredits,
                 AmountInCents = (int?)session.AmountTotal,
-                Description = $"Purchased {credits} credits",
+                Description = transactionDescription,
                 StripeSessionId = session.Id
             };
 
             await _databaseService.SaveTransactionAsync(transaction, cancellationToken);
 
             _logger.LogInformation(
-                "Added {Credits} credits to user {UserId} from session {SessionId}",
-                credits, userId, session.Id);
+                "Added {TotalCredits} credits ({Credits} base + {BonusCredits} bonus) to user {UserId} from session {SessionId}",
+                totalCredits, credits, bonusCredits, userId, session.Id);
 
             return true;
         }

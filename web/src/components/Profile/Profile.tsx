@@ -214,15 +214,26 @@ export function Profile() {
                   <Coins className="w-5 h-5" />
                   <span className="text-sm font-medium">Available Credits</span>
                 </div>
-                <div className="text-4xl font-bold">{user.credits}</div>
+                <div className="text-4xl font-bold">
+                  {user.isUnlimited ? (
+                    <span className="flex items-center gap-2">
+                      <span className="text-3xl">∞</span>
+                      <span className="text-2xl">Unlimited</span>
+                    </span>
+                  ) : (
+                    user.credits
+                  )}
+                </div>
               </div>
-              <button
-                onClick={() => setShowPurchaseModal(true)}
-                className="bg-white border-2 border-blue-600 text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center gap-2"
-              >
-                <CreditCard size={18} />
-                Buy Credits
-              </button>
+              {!user.isUnlimited && (
+                <button
+                  onClick={() => setShowPurchaseModal(true)}
+                  className="bg-white border-2 border-blue-600 text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-colors flex items-center gap-2"
+                >
+                  <CreditCard size={18} />
+                  Buy Credits
+                </button>
+              )}
             </div>
           </div>
         </div>

@@ -9,6 +9,7 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureAppConfiguration((context, config) =>
     {
+        config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
         config.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true);
         config.AddEnvironmentVariables();
     })
@@ -21,6 +22,7 @@ var host = new HostBuilder()
         services.ConfigureFunctionsApplicationInsights();
 
         // Configuration Options
+        services.Configure<AppSettingsOptions>(configuration.GetSection("AppSettings"));
         services.Configure<AzureOpenAIOptions>(configuration.GetSection("AzureOpenAI"));
         services.Configure<DatabaseOptions>(configuration.GetSection("Database"));
         services.Configure<StorageOptions>(configuration.GetSection("Storage"));

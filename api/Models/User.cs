@@ -28,6 +28,7 @@ public class UserMetadata
     public int TotalIconsGenerated { get; set; }
     public int TotalCreditsPurchased { get; set; }
     public int TotalCreditsSpent { get; set; }
+    public bool IsUnlimited { get; set; }
 }
 
 public class UserPreferences

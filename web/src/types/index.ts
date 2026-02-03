@@ -132,6 +132,7 @@ export interface User {
   name?: string
   profilePictureUrl?: string
   credits: number
+  isUnlimited?: boolean
   createdAt: string
   updatedAt: string
   auth?: UserAuth
@@ -265,6 +266,7 @@ export interface CreditPackage {
   id: string
   name: string
   credits: number
+  bonusCredits: number
   priceInCents: number
   stripePriceId?: string
   popular?: boolean

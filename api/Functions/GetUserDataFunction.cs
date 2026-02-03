@@ -4,19 +4,24 @@ using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using IconGenerator.Functions.Services;
+using IconGenerator.Functions.Options;
 
 public class GetUserDataFunction
 {
     private readonly IDatabaseService _databaseService;
     private readonly ILogger<GetUserDataFunction> _logger;
+    private readonly AppSettingsOptions _appSettings;
 
     public GetUserDataFunction(
         IDatabaseService databaseService,
-        ILogger<GetUserDataFunction> logger)
+        ILogger<GetUserDataFunction> logger,
+        IOptions<AppSettingsOptions> appSettings)
     {
         _databaseService = databaseService;
         _logger = logger;
+        _appSettings = appSettings.Value;
     }
 
     [Function("GetUserData")]
@@ -61,6 +66,10 @@ public class GetUserDataFunction
             // Get user's transaction history
             var transactions = await _databaseService.GetUserTransactionsAsync(userId, 50, cancellationToken);
 
+            // Check if user has unlimited access
+            var isUnlimitedUser = !string.IsNullOrEmpty(user.Email) &&
+                                  _appSettings.UnlimitedUsers.Contains(user.Email, StringComparer.OrdinalIgnoreCase);
+
             // Return response
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(new
@@ -70,6 +79,7 @@ public class GetUserDataFunction
                 name = user.Name,
                 profilePictureUrl = user.ProfilePictureUrl,
                 credits = user.Credits,
+                isUnlimited = isUnlimitedUser,
                 createdAt = user.CreatedAt,
                 updatedAt = user.UpdatedAt,
                 metadata = user.Metadata,

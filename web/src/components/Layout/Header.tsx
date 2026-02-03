@@ -1,11 +1,13 @@
 import { Sparkles, Palette, LayoutDashboard, CreditCard } from 'lucide-react'
+import type { User } from '../../types'
 
 interface HeaderProps {
   currentPage: string
   onNavigate: (page: any) => void
+  user?: User | null
 }
 
-export function Header({ currentPage, onNavigate }: HeaderProps) {
+export function Header({ currentPage, onNavigate, user }: HeaderProps) {
   const navItems = [
     { id: 'generator', label: 'Generator', icon: Sparkles },
     { id: 'resources', label: 'App Resources', icon: Palette },
@@ -49,21 +51,27 @@ export function Header({ currentPage, onNavigate }: HeaderProps) {
 
           {/* CTA Buttons */}
           <div className="flex items-center gap-2 md:gap-3">
-            <button
-              onClick={() => onNavigate('pricing')}
-              className="flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors bg-gray-50 rounded-lg hover:bg-gray-100"
-            >
-              <CreditCard className="w-4 h-4" />
-              <span className="hidden sm:inline">Credits:</span>
-              <span className="font-bold text-blue-600">10</span>
-            </button>
+            {user && (
+              <button
+                onClick={() => onNavigate('profile')}
+                className="flex items-center gap-2 px-3 md:px-4 py-2 text-sm font-semibold text-gray-700 hover:text-gray-900 transition-colors bg-gray-50 rounded-lg hover:bg-gray-100"
+              >
+                <CreditCard className="w-4 h-4" />
+                <span className="hidden sm:inline">Credits:</span>
+                <span className="font-bold text-blue-600">
+                  {user.isUnlimited ? '∞' : user.credits}
+                </span>
+              </button>
+            )}
 
-            <button
-              onClick={() => onNavigate('pricing')}
-              className="px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 text-sm md:text-base"
-            >
-              Buy Credits
-            </button>
+            {(!user || !user.isUnlimited) && (
+              <button
+                onClick={() => onNavigate('pricing')}
+                className="px-4 md:px-6 py-2 md:py-2.5 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white font-bold rounded-xl shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 text-sm md:text-base"
+              >
+                Buy Credits
+              </button>
+            )}
           </div>
         </div>
       </div>

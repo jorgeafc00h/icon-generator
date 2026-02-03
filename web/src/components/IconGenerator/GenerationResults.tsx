@@ -125,7 +125,9 @@ export function GenerationResults({ icon, isGenerating }: GenerationResultsProps
       <div className="pt-4 border-t border-gray-200">
         <div className="flex items-center justify-between text-sm">
           <span className="text-gray-600">Credits remaining:</span>
-          <span className="font-bold text-blue-600">{icon.creditsRemaining}</span>
+          <span className="font-bold text-blue-600">
+            {icon.creditsRemaining >= 2147483647 ? '∞ Unlimited' : icon.creditsRemaining}
+          </span>
         </div>
       </div>
 

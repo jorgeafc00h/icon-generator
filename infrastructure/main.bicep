@@ -205,8 +205,8 @@ module functionApp './modules/function-app.bicep' = {
     storageAccountKey: storage.outputs.storageAccountKey
     appInsightsInstrumentationKey: appInsights.outputs.instrumentationKey
     appInsightsConnectionString: appInsights.outputs.connectionString
-    runtime: 'node'
-    runtimeVersion: '18'
+    runtime: 'dotnet-isolated'
+    runtimeVersion: '10.0'
     appSettings: concat([
       {
         name: 'DATABASE_TYPE'

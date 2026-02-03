@@ -148,7 +148,7 @@ export function Profile() {
                 <div className="flex items-start gap-3">
                   <Sparkles className="w-5 h-5 text-blue-600 mt-0.5" />
                   <div>
-                    <div className="font-medium text-gray-900">10 Free Credits</div>
+                    <div className="font-medium text-gray-900">2 Free Credits</div>
                     <div className="text-sm text-gray-600">Start creating immediately</div>
                   </div>
                 </div>

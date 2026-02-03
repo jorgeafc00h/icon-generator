@@ -1,4 +1,4 @@
-import { Sparkles, Palette, LayoutDashboard, CreditCard } from 'lucide-react'
+import { Sparkles, Palette, LayoutDashboard, CreditCard, User as UserIcon } from 'lucide-react'
 import type { User } from '../../types'
 
 interface HeaderProps {
@@ -12,6 +12,7 @@ export function Header({ currentPage, onNavigate, user }: HeaderProps) {
     { id: 'generator', label: 'Generator', icon: Sparkles },
     { id: 'resources', label: 'App Resources', icon: Palette },
     { id: 'dashboard', label: 'My Icons', icon: LayoutDashboard },
+    { id: 'profile', label: 'Profile', icon: UserIcon },
   ]
 
   return (

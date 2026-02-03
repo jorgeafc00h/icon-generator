@@ -10,32 +10,25 @@ interface PurchaseCreditsModalProps {
 const creditPackages: CreditPackage[] = [
   {
     id: 'starter',
-    name: 'Starter',
-    credits: 50,
-    bonusCredits: 5,
-    priceInCents: 499, // $4.99
-  },
-  {
-    id: 'popular',
-    name: 'Popular',
-    credits: 150,
-    bonusCredits: 20,
-    priceInCents: 999, // $9.99
-    popular: true,
+    name: 'Starter Pack',
+    credits: 10,
+    bonusCredits: 0,
+    priceInCents: 1200, // $12.00
   },
   {
     id: 'pro',
-    name: 'Professional',
-    credits: 500,
-    bonusCredits: 75,
-    priceInCents: 2999, // $29.99
+    name: 'Pro Pack',
+    credits: 50,
+    bonusCredits: 10, // 10 BONUS CREDITS!
+    priceInCents: 2900, // $29.00
+    popular: true, // Best value!
   },
   {
     id: 'business',
-    name: 'Business',
-    credits: 1500,
-    bonusCredits: 250,
-    priceInCents: 7999, // $79.99
+    name: 'Business Pack',
+    credits: 150,
+    bonusCredits: 15, // 15 BONUS CREDITS!
+    priceInCents: 4900, // $49.00
   },
 ]
 
@@ -93,10 +86,8 @@ export function PurchaseCreditsModal({ onClose, currentCredits }: PurchaseCredit
     switch (packageId) {
       case 'starter':
         return Zap
-      case 'popular':
-        return Star
       case 'pro':
-        return Crown
+        return Star
       case 'business':
         return Crown
       default:
@@ -108,10 +99,8 @@ export function PurchaseCreditsModal({ onClose, currentCredits }: PurchaseCredit
     switch (packageId) {
       case 'starter':
         return 'from-blue-500 to-blue-600'
-      case 'popular':
-        return 'from-purple-500 to-purple-600'
       case 'pro':
-        return 'from-yellow-500 to-orange-600'
+        return 'from-purple-500 to-purple-600'
       case 'business':
         return 'from-pink-500 to-red-600'
       default:
@@ -140,7 +129,7 @@ export function PurchaseCreditsModal({ onClose, currentCredits }: PurchaseCredit
 
         {/* Pricing Cards */}
         <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             {creditPackages.map(pkg => {
               const Icon = getPackageIcon(pkg.id)
               const isSelected = selectedPackage?.id === pkg.id
@@ -181,9 +170,17 @@ export function PurchaseCreditsModal({ onClose, currentCredits }: PurchaseCredit
 
                   <div className="mb-3">
                     <div className="text-3xl font-bold text-gray-900">
-                      {pkg.credits}
+                      {pkg.credits + pkg.bonusCredits}
                     </div>
-                    <div className="text-sm text-gray-600">credits</div>
+                    <div className="text-sm text-gray-600">
+                      {pkg.bonusCredits > 0 ? (
+                        <>
+                          {pkg.credits} + <span className="text-green-600 font-semibold">{pkg.bonusCredits} bonus</span>
+                        </>
+                      ) : (
+                        'credits'
+                      )}
+                    </div>
                   </div>
 
                   <div className="mb-4">
@@ -195,10 +192,18 @@ export function PurchaseCreditsModal({ onClose, currentCredits }: PurchaseCredit
                     </div>
                   </div>
 
-                  {pkg.id === 'popular' && (
+                  {pkg.bonusCredits > 0 && (
                     <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="text-xs font-bold text-green-600">
+                        🎁 {pkg.bonusCredits} Bonus Credits Included!
+                      </div>
+                    </div>
+                  )}
+
+                  {pkg.popular && (
+                    <div className="mt-2">
                       <div className="text-xs font-medium text-purple-600">
-                        Best Value • Save 33%
+                        ⭐ Most Popular Choice
                       </div>
                     </div>
                   )}
@@ -268,10 +273,16 @@ export function PurchaseCreditsModal({ onClose, currentCredits }: PurchaseCredit
                 <div>
                   <div className="text-sm opacity-90 mb-1">Selected Package</div>
                   <div className="text-2xl font-bold">
-                    {selectedPackage.name} - {selectedPackage.credits} Credits
+                    {selectedPackage.name} - {selectedPackage.credits + selectedPackage.bonusCredits} Credits
+                    {selectedPackage.bonusCredits > 0 && (
+                      <span className="text-lg ml-2">🎁</span>
+                    )}
                   </div>
                   <div className="text-sm opacity-90 mt-1">
                     ${(selectedPackage.priceInCents / 100).toFixed(2)} one-time payment
+                    {selectedPackage.bonusCredits > 0 && (
+                      <span className="ml-2">• Includes {selectedPackage.bonusCredits} bonus credits</span>
+                    )}
                   </div>
                 </div>
                 <button

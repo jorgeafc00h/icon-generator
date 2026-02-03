@@ -69,7 +69,7 @@ public class AuthResponse
 
 **Features**:
 - ✅ Verifies Google ID token
-- ✅ Creates new user with 10 welcome credits
+- ✅ Creates new user with 2 welcome credits
 - ✅ Updates existing user profile info
 - ✅ Tracks last login time
 - ✅ Returns access token for API calls
@@ -174,7 +174,7 @@ export interface CreditPackage {
 **Unauthenticated State**:
 - 🎨 Gradient hero card
 - 🔐 Google Sign-In button (prominent)
-- ✨ Feature highlights (10 free credits, 18+ styles, platform assets)
+- ✨ Feature highlights (2 free credits, 18+ styles, platform assets)
 - 📄 Terms & privacy notice
 
 **Authenticated State**:
@@ -366,7 +366,7 @@ VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 2. User clicks "Profile" (not logged in)
    └─→ Shows beautiful sign-in card
    └─→ Displays welcome message
-   └─→ Shows benefits (10 free credits, etc.)
+   └─→ Shows benefits (2 free credits, etc.)
 
 3. User clicks "Sign in with Google"
    └─→ Google popup appears
@@ -377,7 +377,7 @@ VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
    └─→ POST /api/auth/google
    └─→ Backend verifies token
    └─→ Backend creates new user
-   └─→ Backend gives 10 welcome credits
+   └─→ Backend gives 2 welcome credits
    └─→ Backend returns access token
 
 5. User is redirected to profile
@@ -435,7 +435,7 @@ VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 - 0 credits = Platform assets (free with icon generation)
 
 **Welcome Bonus**:
-- New users: 10 free credits
+- New users: 2 free credits
 - Enough to generate 10 icons or mockups
 
 **Value Proposition**:
@@ -607,7 +607,7 @@ web/.env.example                            (+3 lines) - Added Google Client ID
 - ✅ Beautiful, modern UI/UX
 - ✅ Responsive design
 - ✅ Secure payment integration
-- ✅ New user onboarding (10 free credits)
+- ✅ New user onboarding (2 free credits)
 
 **Lines of Code**:
 - Backend: ~300 lines (models + functions + services)
@@ -656,7 +656,7 @@ npm run dev
 - Navigate to http://localhost:5173/profile
 - Click "Sign in with Google"
 - Complete authentication
-- View profile with 10 welcome credits
+- View profile with 2 welcome credits
 - Click "Buy Credits" to see purchase modal
 
 ---

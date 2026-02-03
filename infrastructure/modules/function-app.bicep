@@ -28,10 +28,10 @@ param appInsightsInstrumentationKey string
 param appInsightsConnectionString string
 
 @description('Runtime stack')
-param runtime string = 'node'
+param runtime string = 'dotnet-isolated'
 
 @description('Runtime version')
-param runtimeVersion string = '18'
+param runtimeVersion string = '10.0'
 
 @description('Additional app settings')
 param appSettings array = []
@@ -50,7 +50,7 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
     reserved: true
     httpsOnly: true
     siteConfig: {
-      linuxFxVersion: '${runtime}|${runtimeVersion}'
+      linuxFxVersion: 'DOTNET-ISOLATED|${runtimeVersion}'
       appSettings: concat([
         {
           name: 'AzureWebJobsStorage'
@@ -71,10 +71,6 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
           value: runtime
-        }
-        {
-          name: 'WEBSITE_NODE_DEFAULT_VERSION'
-          value: '~${runtimeVersion}'
         }
         {
           name: 'APPINSIGHTS_INSTRUMENTATIONKEY'

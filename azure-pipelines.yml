@@ -33,26 +33,34 @@ variables:
 stages:
   # ============================================
   # Stage 1: Infrastructure Deployment
-  # NOTE: Commented out until Azure service connection is created
-  # Create service connection in Azure DevOps: Project Settings > Service connections > New > Azure Resource Manager
   # ============================================
-  # - stage: Infrastructure
-  #   displayName: 'Deploy Infrastructure'
-  #   jobs:
-  #     - job: DeployBicep
-  #       displayName: 'Deploy Bicep Templates'
-  #       pool:
-  #         vmImage: $(vmImageName)
-  #       steps:
-  #         - task: AzureCLI@2
-  #           ... (Infrastructure deployment tasks disabled)
+  - stage: Infrastructure
+    displayName: 'Deploy Infrastructure'
+    jobs:
+      - job: DeployBicep
+        displayName: 'Deploy Bicep Templates'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Deploy Bicep Template'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                az deployment group create \
+                  --resource-group $(resourceGroupName) \
+                  --template-file infrastructure/main.bicep \
+                  --parameters infrastructure/parameters.dev.json \
+                  --parameters location=$(location)
 
   # ============================================
   # Stage 2: Build Backend (Azure Functions)
   # ============================================
   - stage: BuildBackend
     displayName: 'Build Backend'
-    # dependsOn: Infrastructure  # Commented out - remove dependency on Infrastructure stage
+    dependsOn: Infrastructure
     jobs:
       - job: BuildFunctions
         displayName: 'Build Azure Functions'
@@ -114,28 +122,46 @@ stages:
   #       ... (frontend build tasks disabled)
 
   # ============================================
-  # Deployment stages commented out until service connection is authorized
-  # To enable: Authorize "Azure PROD" service connection in Azure DevOps
-  # Project Settings > Service connections > Azure PROD > Security > Grant access to all pipelines
+  # Stage 3: Deploy Backend (Azure Functions)
   # ============================================
-  
-  # - stage: DeployBackend
-  #   displayName: 'Deploy Backend'
-  #   dependsOn: BuildBackend
-  #   ... (deployment tasks)
-  
-  # - stage: DeployFrontend
-  #   displayName: 'Deploy Frontend'
-  #   dependsOn: BuildFrontend
-  #   ... (deployment tasks)
-  
-  # - stage: PostDeployment
-  #   displayName: 'Post-Deployment Configuration'
-  #   dependsOn: [DeployBackend, DeployFrontend]
-  #   ... (configuration tasks)
-  
-  # - stage: SmokeTests
-  #   displayName: 'Smoke Tests'
-  #   dependsOn: [DeployBackend, DeployFrontend]
-  #   ... (test tasks)
+  - stage: DeployBackend
+    displayName: 'Deploy Backend'
+    dependsOn: BuildBackend
+    jobs:
+      - deployment: DeployFunctions
+        displayName: 'Deploy Azure Functions'
+        environment: 'production'
+        pool:
+          vmImage: $(vmImageName)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: current
+                  artifact: functions
+                  displayName: 'Download Function Artifact'
+
+                - task: AzureCLI@2
+                  displayName: 'Get Function App Name'
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    scriptType: 'bash'
+                    scriptLocation: 'inlineScript'
+                    inlineScript: |
+                      functionAppName=$(az deployment group show \
+                        --resource-group $(resourceGroupName) \
+                        --name main \
+                        --query properties.outputs.functionAppName.value \
+                        --output tsv)
+                      echo "##vso[task.setvariable variable=functionAppName]$functionAppName"
+
+                - task: AzureFunctionApp@2
+                  displayName: 'Deploy to Azure Functions'
+                  inputs:
+                    azureSubscription: $(azureSubscription)
+                    appType: 'functionAppLinux'
+                    appName: $(functionAppName)
+                    package: '$(Pipeline.Workspace)/functions/functions.zip'
+                    runtimeStack: 'DOTNET-ISOLATED|10.0'
+                    deploymentMethod: 'auto'
 

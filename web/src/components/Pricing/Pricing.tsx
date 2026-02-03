@@ -4,6 +4,7 @@ const plans = [
   {
     name: 'Starter',
     credits: 10,
+    bonusCredits: 0,
     price: 12,
     icon: Zap,
     features: ['10 icon generations', 'All 18+ styles', 'Standard quality', 'Commercial license'],
@@ -11,17 +12,19 @@ const plans = [
   {
     name: 'Pro',
     credits: 50,
+    bonusCredits: 10,
     price: 29,
     icon: Star,
     popular: true,
-    features: ['50 icon generations', 'All 18+ styles', 'HD quality included', 'Commercial license', 'Priority support'],
+    features: ['60 total credits (50 + 10 bonus)', 'All 18+ styles', 'HD quality included', 'Commercial license', 'Priority support'],
   },
   {
     name: 'Business',
     credits: 150,
+    bonusCredits: 15,
     price: 49,
     icon: Rocket,
-    features: ['150 icon generations', 'All 18+ styles', 'HD quality included', 'Commercial license', 'Priority support', 'Bulk generation'],
+    features: ['165 total credits (150 + 15 bonus)', 'All 18+ styles', 'HD quality included', 'Commercial license', 'Priority support', 'Bulk generation'],
   },
 ]
 
@@ -56,7 +59,18 @@ export function Pricing() {
               <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
               <div className="mb-6">
                 <span className="text-4xl font-bold">${plan.price}</span>
-                <span className="text-gray-600"> / {plan.credits} credits</span>
+                <div className="text-gray-600 mt-1">
+                  {plan.bonusCredits > 0 ? (
+                    <>
+                      <span className="text-2xl font-bold text-gray-900">{plan.credits + plan.bonusCredits}</span> credits
+                      <div className="text-sm text-green-600 font-semibold mt-1">
+                        🎁 Includes {plan.bonusCredits} bonus credits
+                      </div>
+                    </>
+                  ) : (
+                    <span>{plan.credits} credits</span>
+                  )}
+                </div>
               </div>
 
               <ul className="space-y-3 mb-8">

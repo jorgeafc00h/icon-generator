@@ -14,7 +14,7 @@ public class AuthenticationFunction
 {
     private readonly IDatabaseService _databaseService;
     private readonly ILogger<AuthenticationFunction> _logger;
-    private const int WELCOME_CREDITS = 10; // Free credits for new users
+    private const int WELCOME_CREDITS = 2; // Free credits for new users
 
     public AuthenticationFunction(
         IDatabaseService databaseService,

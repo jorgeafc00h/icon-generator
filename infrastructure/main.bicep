@@ -58,7 +58,7 @@ param tags object = {
 // ==============================================
 
 // Use static resource names to match existing resources and enable updates
-var storageAccountName = 'iconfgenisp4yt2h' // Existing storage account
+var storageAccountName = 'sticongen' // Existing storage account with data
 var functionAppName = 'func-icon-generator-${environment}'
 var appServicePlanName = 'asp-icon-generator-${environment}'
 var staticWebAppName = 'icon-generator-pro' // Existing Static Web App

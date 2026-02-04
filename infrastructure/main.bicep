@@ -46,6 +46,9 @@ param frontendUrl string = ''
 @description('Enable Free Tier for Cosmos DB (opt-in; only one free-tier account per subscription)')
 param enableCosmosFreeTier bool = true
 
+@description('Use an existing Cosmos DB account instead of creating a new one')
+param useExistingCosmos bool = true
+
 @description('Tags to apply to all resources')
 param tags object = {
   Environment: environment
@@ -126,7 +129,7 @@ module storage './modules/storage-account.bicep' = {
 // Module: Cosmos DB (Conditional)
 // ==============================================
 
-module cosmosDb './modules/cosmos-db.bicep' = if (databaseType == 'cosmosdb') {
+module cosmosDb './modules/cosmos-db.bicep' = if (databaseType == 'cosmosdb' && !useExistingCosmos) {
   name: 'cosmos-deployment'
   params: {
     name: cosmosAccountName
@@ -139,6 +142,11 @@ module cosmosDb './modules/cosmos-db.bicep' = if (databaseType == 'cosmosdb') {
     enableServerless: environment != 'prod'
   }
 }
+
+// When using an existing Cosmos DB account we will not attempt to modify its capabilities
+// Use runtime functions to read keys/endpoints for wiring into app settings
+var cosmosEndpointEffective = databaseType == 'cosmosdb' ? (useExistingCosmos ? reference(resourceId('Microsoft.DocumentDB/databaseAccounts', cosmosAccountName), '2023-11-15').properties.documentEndpoint : cosmosDb.outputs.endpoint) : ''
+var cosmosPrimaryKeyEffective = databaseType == 'cosmosdb' ? (useExistingCosmos ? listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', cosmosAccountName), '2023-11-15').primaryMasterKey : cosmosDb.outputs.primaryKey) : ''
 
 // ==============================================
 // Module: Azure SQL (Conditional)
@@ -274,14 +282,14 @@ module functionApp './modules/function-app.bicep' = {
         name: 'Stripe__FrontendUrl'
         value: frontendUrl
       }
-    ], databaseType == 'cosmosdb' ? [
+    ] , databaseType == 'cosmosdb' ? [
       {
         name: 'Database__CosmosEndpoint'
-        value: cosmosDb.outputs.endpoint
+        value: cosmosEndpointEffective
       }
       {
         name: 'Database__CosmosKey'
-        value: cosmosDb.outputs.primaryKey
+        value: cosmosPrimaryKeyEffective
       }
       {
         name: 'Database__CosmosDatabase'
@@ -332,8 +340,8 @@ output storageBlobEndpoint string = storage.outputs.blobEndpoint
 
 // Database outputs (conditional)
 output databaseType string = databaseType
-output cosmosAccountName string = databaseType == 'cosmosdb' ? cosmosDb.outputs.accountName : ''
-output cosmosEndpoint string = databaseType == 'cosmosdb' ? cosmosDb.outputs.endpoint : ''
+output cosmosAccountName string = databaseType == 'cosmosdb' ? cosmosAccountName : ''
+output cosmosEndpoint string = databaseType == 'cosmosdb' ? cosmosEndpointEffective : ''
 output sqlServerName string = databaseType == 'sql' ? azureSQL.outputs.serverName : ''
 output sqlDatabaseName string = databaseType == 'sql' ? azureSQL.outputs.databaseName : ''
 

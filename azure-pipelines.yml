@@ -19,7 +19,7 @@ pr:
 
 variables:
   - name: azureSubscription
-    value: 'YOUR_SERVICE_CONNECTION_NAME' # TODO: Replace with your Azure service connection name
+    value: 'icon-generator-azure' # Replace with your actual service connection name from Azure DevOps
   # Note: Add variable group 'icon-generator-variables' in Azure DevOps Library if needed
   - name: resourceGroupName
     value: 'rg-icon-generator'

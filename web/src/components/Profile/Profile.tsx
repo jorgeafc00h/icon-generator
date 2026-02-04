@@ -120,8 +120,14 @@ export function Profile({ onUserUpdate }: ProfileProps) {
 
   const handleGoogleSignIn = (authResponse: any) => {
     console.log('Sign in successful:', authResponse)
+
+    // Store all user data in localStorage
     localStorage.setItem('accessToken', authResponse.AccessToken)
     localStorage.setItem('userId', authResponse.UserId)
+    localStorage.setItem('userEmail', authResponse.Email)
+    localStorage.setItem('userName', authResponse.Name || '')
+    localStorage.setItem('userPicture', authResponse.ProfilePictureUrl || '')
+
     setUser({
       id: authResponse.UserId,
       email: authResponse.Email,
@@ -140,7 +146,7 @@ export function Profile({ onUserUpdate }: ProfileProps) {
       }
     })
 
-    // Notify parent component
+    // Notify parent component to reload user data
     if (onUserUpdate) {
       onUserUpdate()
     }

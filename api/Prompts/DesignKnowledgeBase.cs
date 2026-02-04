@@ -114,15 +114,21 @@ CORE DESIGN PRINCIPLES FOR UI SCREENS:
     public static class StyleTemplates
     {
         public const string Modern3D = @"
-3D STYLE GUIDELINES:
-- Use soft, rounded geometric shapes with depth
-- Apply realistic lighting: key light from top-left at 45°, subtle rim light
-- Gradient overlays for dimension (lighter at top, darker at bottom)
-- Subtle drop shadow (20-30% opacity, 2-4px blur)
-- Smooth surfaces with subtle reflections
-- Isometric or slight perspective view
-- Depth should enhance, not overwhelm
-- Use subsurface scattering for organic materials
+3D MODERN RENDER STYLE (CLEAN & BEAUTIFUL):
+- ONE single 3D object centered and filling 90-95% of the canvas
+- Smooth, organic 3D shapes with soft rounded edges
+- Beautiful multi-stop gradients (3-4 colors) flowing naturally across the surface
+- Soft directional lighting from top-left creating gentle highlights and shadows
+- Slight 3/4 perspective view (NOT isometric - use natural camera perspective)
+- Glossy, smooth surfaces with subtle specular highlights
+- Soft drop shadow beneath object (15-25% opacity, slight blur)
+- Rich, vibrant gradient colors (purple to orange, blue to pink, etc.)
+- Clean composition - NO nested icons, NO icon-within-icon, NO multiple objects
+- The object should be LARGE and extend toward canvas edges with minimal padding (5-10% max)
+- Professional studio-quality render with depth and dimension
+- Smooth lighting transitions - avoid harsh shadows or extreme contrast
+- Think: Apple product renders, modern app store icons, premium 3D illustrations
+- Perfect for: single objects, abstract shapes, geometric forms, simplified representations
 ";
 
         public const string Minimal = @"

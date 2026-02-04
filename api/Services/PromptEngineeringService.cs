@@ -52,21 +52,30 @@ Output: A concise DALL-E prompt for a single edge-to-edge canvas-filling icon.";
     public string BuildIconUserPrompt(IconGenerationRequest request)
     {
         var colorGuidance = DesignKnowledgeBase.ColorPalettes.GetPalettePrompt(request.Colors);
+        var is3DStyle = request.Style.ToLowerInvariant().Contains("3d") ||
+                        request.Style.ToLowerInvariant() == "modern";
+
+        var canvasGuidance = is3DStyle
+            ? @"- ONE large 3D object occupying 90-95% of canvas with only 5-10% padding maximum
+- Object should be LARGE and extend toward edges - avoid floating small objects
+- Clean, simple composition - single subject only, NO nested icons
+- Use natural perspective, not isometric"
+            : @"- ONE large icon with zero margins - it bleeds to all canvas edges
+- The main subject fills the complete square canvas edge-to-edge
+- Bold centered element maximizing full canvas utilization";
 
         var userPrompt = $@"Design a {request.Style} style app icon representing: {request.Keywords}
 
 Color scheme: {colorGuidance}
 
 Composition requirements:
-- ONE large icon with zero margins - it bleeds to all canvas edges
-- The main subject fills the complete square canvas edge-to-edge
-- NO padding, NO border space, NO surrounding empty area
+{canvasGuidance}
+- NO padding, NO border space, NO excessive surrounding empty area
 - NO multiple sizes, NO small preview versions, NO miniatures
-- Bold centered element maximizing full canvas utilization
 - Professional {request.Style} execution
-- Design extends to the very edges of the square frame
+- Design extends toward the edges of the square frame
 
-Generate a concise DALL-E prompt for an edge-to-edge icon.";
+Generate a concise DALL-E prompt for a canvas-filling icon.";
 
         return SanitizePrompt(userPrompt);
     }

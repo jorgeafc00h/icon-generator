@@ -77,11 +77,11 @@ export function Header({ currentPage, onNavigate, user }: HeaderProps) {
                     />
                   ) : (
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-bold ring-2 ring-blue-100">
-                      {(user.name || user.email).charAt(0).toUpperCase()}
+                      {((user.name || user.email || 'U').charAt(0).toUpperCase())}
                     </div>
                   )}
                   <span className="hidden md:inline text-sm font-medium text-gray-700">
-                    {user.name || user.email.split('@')[0]}
+                    {user.name || (user.email ? user.email.split('@')[0] : 'User')}
                   </span>
                 </button>
               </>

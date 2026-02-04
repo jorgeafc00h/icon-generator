@@ -55,7 +55,9 @@ param tags object = {
 // ==============================================
 
 var resourceSuffix = '${baseName}-${environment}-${uniqueString(resourceGroup().id)}'
-var storageAccountName = replace('st${resourceSuffix}', '-', '')
+// Storage account names must be 3-24 characters, lowercase letters and numbers only
+// Compose a deterministic short name using baseName + truncated uniqueString
+var storageAccountName = toLower(take('${baseName}${take(uniqueString(resourceGroup().id), 8)}', 24))
 var functionAppName = 'func-${resourceSuffix}'
 var appServicePlanName = 'asp-${resourceSuffix}'
 var staticWebAppName = 'swa-${resourceSuffix}'

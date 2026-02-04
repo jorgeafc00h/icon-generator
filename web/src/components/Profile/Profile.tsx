@@ -120,14 +120,14 @@ export function Profile({ onUserUpdate }: ProfileProps) {
 
   const handleGoogleSignIn = (authResponse: any) => {
     console.log('Sign in successful:', authResponse)
-    localStorage.setItem('accessToken', authResponse.accessToken)
-    localStorage.setItem('userId', authResponse.userId)
+    localStorage.setItem('accessToken', authResponse.AccessToken)
+    localStorage.setItem('userId', authResponse.UserId)
     setUser({
-      id: authResponse.userId,
-      email: authResponse.email,
-      name: authResponse.name,
-      profilePictureUrl: authResponse.profilePictureUrl,
-      credits: authResponse.credits,
+      id: authResponse.UserId,
+      email: authResponse.Email,
+      name: authResponse.Name,
+      profilePictureUrl: authResponse.ProfilePictureUrl,
+      credits: authResponse.Credits,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       metadata: {
@@ -287,7 +287,7 @@ export function Profile({ onUserUpdate }: ProfileProps) {
                 />
               ) : (
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  {(user.name || user.email).charAt(0).toUpperCase()}
+                  {((user.name || user.email || 'U').charAt(0).toUpperCase())}
                 </div>
               )}
               <div>

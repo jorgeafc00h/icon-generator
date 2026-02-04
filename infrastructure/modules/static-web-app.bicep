@@ -38,4 +38,4 @@ resource staticWebApp 'Microsoft.Web/staticSites@2023-01-01' = {
 output id string = staticWebApp.id
 output name string = staticWebApp.name
 output defaultHostname string = 'https://${staticWebApp.properties.defaultHostname}'
-output apiKey string = staticWebApp.listSecrets().properties.apiKey
+// apiKey removed from outputs for security

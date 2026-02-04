@@ -251,6 +251,10 @@ module functionApp './modules/function-app.bicep' = {
         value: 'generated-icons'
       }
       {
+        name: 'Google__ClientId'
+        value: googleClientId
+      }
+      {
         name: 'AllowedOrigins'
         value: '*'
       }
@@ -304,7 +308,7 @@ module staticWebApp './modules/static-web-app.bicep' = {
   name: 'static-web-app-deployment'
   params: {
     name: staticWebAppName
-    location: location
+    location: location == 'eastus' ? 'eastus2' : location
     tags: tags
     sku: environment == 'prod' ? 'Standard' : 'Free'
   }
@@ -320,17 +324,14 @@ output environment string = environment
 
 // Storage outputs
 output storageAccountName string = storage.outputs.storageAccountName
-output storageConnectionString string = storage.outputs.connectionString
 output storageBlobEndpoint string = storage.outputs.blobEndpoint
 
 // Database outputs (conditional)
 output databaseType string = databaseType
 output cosmosAccountName string = databaseType == 'cosmosdb' ? cosmosDb.outputs.accountName : ''
 output cosmosEndpoint string = databaseType == 'cosmosdb' ? cosmosDb.outputs.endpoint : ''
-output cosmosKey string = databaseType == 'cosmosdb' ? cosmosDb.outputs.primaryKey : ''
 output sqlServerName string = databaseType == 'sql' ? azureSQL.outputs.serverName : ''
 output sqlDatabaseName string = databaseType == 'sql' ? azureSQL.outputs.databaseName : ''
-output sqlConnectionString string = databaseType == 'sql' ? azureSQL.outputs.connectionString : ''
 
 // OpenAI outputs
 output openAIName string = openAI.outputs.name
@@ -345,7 +346,7 @@ output functionAppPrincipalId string = functionApp.outputs.principalId
 // Static Web App outputs
 output staticWebAppName string = staticWebApp.outputs.name
 output staticWebAppUrl string = staticWebApp.outputs.defaultHostname
-output staticWebAppToken string = staticWebApp.outputs.apiKey
+// static web app token removed from outputs for security
 
 // Monitoring outputs
 output appInsightsName string = appInsights.outputs.name

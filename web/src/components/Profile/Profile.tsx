@@ -27,10 +27,14 @@ export function Profile({ onUserUpdate }: ProfileProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'history' | 'settings'>('overview')
 
   useEffect(() => {
+    console.log('🔷 Profile useEffect running...')
+
     // Check for OAuth callback first (hash in URL)
     const hash = window.location.hash
+    console.log('🔷 Hash:', hash ? hash.substring(0, 50) + '...' : 'none')
+
     if (hash && hash.includes('id_token=')) {
-      console.log('OAuth callback detected in Profile, waiting for GoogleSignIn to process...')
+      console.log('🔷 OAuth callback detected in Profile, waiting for GoogleSignIn to process...')
       setLoading(false)
       return // Let GoogleSignIn component handle the callback
     }
@@ -56,9 +60,19 @@ export function Profile({ onUserUpdate }: ProfileProps) {
 
     // Check if user is logged in
     const accessToken = localStorage.getItem('accessToken')
+    const userId = localStorage.getItem('userId')
+    console.log('🔷 LocalStorage check:', {
+      hasToken: !!accessToken,
+      hasUserId: !!userId,
+      tokenLength: accessToken?.length,
+      userId: userId
+    })
+
     if (accessToken) {
+      console.log('🔷 Access token found, fetching user data...')
       fetchUserData()
     } else {
+      console.log('🔷 No access token, showing login screen')
       setLoading(false)
     }
   }, [])
@@ -67,31 +81,47 @@ export function Profile({ onUserUpdate }: ProfileProps) {
     try {
       const accessToken = localStorage.getItem('accessToken')
       const userId = localStorage.getItem('userId')
+      console.log('🔷 fetchUserData called:', { hasToken: !!accessToken, userId })
 
       if (!accessToken || !userId) {
+        console.log('🔷 Missing accessToken or userId, aborting fetch')
         setLoading(false)
         return
       }
 
-      const response = await fetch(`${import.meta.env.VITE_API_ENDPOINT}/users/${userId}`, {
+      const apiEndpoint = import.meta.env.VITE_API_ENDPOINT
+      const url = `${apiEndpoint}/users/${userId}`
+      console.log('🔷 Fetching from:', url)
+
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${accessToken}`
         }
       })
 
+      console.log('🔷 Response status:', response.status)
+
       if (!response.ok) {
         if (response.status === 401) {
+          console.log('🔷 Token expired (401), signing out')
           // Token expired, sign out
           handleSignOut()
           return
         }
+        const errorText = await response.text()
+        console.error('🔷 Failed to fetch user data:', errorText)
         throw new Error('Failed to fetch user data')
       }
 
       const userData = await response.json()
+      console.log('🔷 User data received:', {
+        email: userData.email,
+        credits: userData.credits,
+        hasName: !!userData.name
+      })
       setUser(userData)
     } catch (error) {
-      console.error('Error fetching user data:', error)
+      console.error('🔷 Error fetching user data:', error)
       toast.error('Failed to load user data')
     } finally {
       setLoading(false)

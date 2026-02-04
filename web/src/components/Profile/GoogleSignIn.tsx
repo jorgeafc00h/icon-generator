@@ -83,16 +83,15 @@ export function GoogleSignIn({ onSuccess, onError, variant = 'default' }: Google
       window.history.replaceState({}, '', window.location.pathname)
       console.log('🧹 Cleaned URL')
 
-      // Call success callback
+      // Call success callback - this will update the Profile component's state
       if (onSuccess) {
+        console.log('📢 Calling onSuccess callback')
         onSuccess(authResponse)
+      } else {
+        console.log('⚠️ No onSuccess callback provided')
       }
 
-      // Reload page
-      console.log('🔄 Reloading page...')
-      setTimeout(() => {
-        window.location.reload()
-      }, 300)
+      setProcessing(false)
 
     } catch (error) {
       console.error('💥 Error:', error)

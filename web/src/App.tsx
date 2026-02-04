@@ -24,7 +24,6 @@ type Page = 'generator' | 'resources' | 'dashboard' | 'pricing' | 'profile'
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('generator')
   const [user, setUser] = useState<User | null>(null)
-  const [loadingUser, setLoadingUser] = useState(true)
 
   useEffect(() => {
     // Load user data on app mount
@@ -37,7 +36,6 @@ function App() {
       const userId = localStorage.getItem('userId')
 
       if (!accessToken || !userId) {
-        setLoadingUser(false)
         return
       }
 
@@ -53,7 +51,6 @@ function App() {
           localStorage.clear()
           setUser(null)
         }
-        setLoadingUser(false)
         return
       }
 
@@ -61,8 +58,6 @@ function App() {
       setUser(userData)
     } catch (error) {
       console.error('Error loading user data:', error)
-    } finally {
-      setLoadingUser(false)
     }
   }
 

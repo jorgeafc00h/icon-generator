@@ -20,6 +20,30 @@
         "description": "Not needed when using Cosmos DB"
       }
     },
+    "stripeSecretKey": {
+      "value": "",
+      "metadata": {
+        "description": "Add Stripe secret key for payment processing"
+      }
+    },
+    "stripeWebhookSecret": {
+      "value": "",
+      "metadata": {
+        "description": "Add Stripe webhook secret for payment webhooks"
+      }
+    },
+    "googleClientId": {
+      "value": "",
+      "metadata": {
+        "description": "Add Google OAuth Client ID for authentication"
+      }
+    },
+    "frontendUrl": {
+      "value": "http://localhost:5173",
+      "metadata": {
+        "description": "Frontend URL for Stripe redirects (update for production)"
+      }
+    },
     "tags": {
       "value": {
         "Environment": "Development",

@@ -26,10 +26,18 @@ public class GetUserDataFunction
 
     [Function("GetUserData")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "users/{userId}")] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", "options", Route = "users/{userId}")] HttpRequestData req,
         string userId,
         CancellationToken cancellationToken)
     {
+        // Handle CORS preflight request
+        if (req.Method == "OPTIONS")
+        {
+            var corsResponse = req.CreateResponse(HttpStatusCode.OK);
+            AddCorsHeaders(corsResponse, req);
+            return corsResponse;
+        }
+
         _logger.LogInformation("Get user data function triggered for user: {UserId}", userId);
 
         try
@@ -40,6 +48,7 @@ public class GetUserDataFunction
             if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
             {
                 var unauthorizedResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
+                AddCorsHeaders(unauthorizedResponse, req);
                 await unauthorizedResponse.WriteAsJsonAsync(new { error = "Missing or invalid authorization token" });
                 return unauthorizedResponse;
             }
@@ -47,6 +56,7 @@ public class GetUserDataFunction
             if (string.IsNullOrEmpty(userId))
             {
                 var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(badRequestResponse, req);
                 await badRequestResponse.WriteAsJsonAsync(new { error = "User ID is required" });
                 return badRequestResponse;
             }
@@ -56,6 +66,7 @@ public class GetUserDataFunction
             if (user == null)
             {
                 var notFoundResponse = req.CreateResponse(HttpStatusCode.NotFound);
+                AddCorsHeaders(notFoundResponse, req);
                 await notFoundResponse.WriteAsJsonAsync(new { error = "User not found" });
                 return notFoundResponse;
             }
@@ -72,6 +83,7 @@ public class GetUserDataFunction
 
             // Return response
             var response = req.CreateResponse(HttpStatusCode.OK);
+            AddCorsHeaders(response, req);
             await response.WriteAsJsonAsync(new
             {
                 id = user.Id,
@@ -111,8 +123,33 @@ public class GetUserDataFunction
         {
             _logger.LogError(ex, "Error getting user data");
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+            AddCorsHeaders(errorResponse, req);
             await errorResponse.WriteAsJsonAsync(new { error = "An error occurred while fetching user data" });
             return errorResponse;
         }
+    }
+
+    private void AddCorsHeaders(HttpResponseData response, HttpRequestData request)
+    {
+        // Get origin from request
+        var origin = request.Headers.Contains("Origin")
+            ? request.Headers.GetValues("Origin").FirstOrDefault()
+            : "*";
+
+        // Allow specific origins (localhost for development)
+        var allowedOrigins = new[] { "http://localhost:5173", "http://localhost:3000", "https://mango-bay-068c07f0f.6.azurestaticapps.net" };
+
+        if (origin != null && allowedOrigins.Contains(origin))
+        {
+            response.Headers.Add("Access-Control-Allow-Origin", origin);
+        }
+        else if (origin == "*")
+        {
+            response.Headers.Add("Access-Control-Allow-Origin", "*");
+        }
+
+        response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        response.Headers.Add("Access-Control-Allow-Credentials", "true");
     }
 }

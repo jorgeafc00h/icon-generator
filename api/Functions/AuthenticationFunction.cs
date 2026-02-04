@@ -26,9 +26,17 @@ public class AuthenticationFunction
 
     [Function("GoogleAuth")]
     public async Task<HttpResponseData> GoogleAuth(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "auth/google")] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", "options", Route = "auth/google")] HttpRequestData req,
         CancellationToken cancellationToken)
     {
+        // Handle CORS preflight request
+        if (req.Method == "OPTIONS")
+        {
+            var corsResponse = req.CreateResponse(HttpStatusCode.OK);
+            AddCorsHeaders(corsResponse, req);
+            return corsResponse;
+        }
+
         _logger.LogInformation("Google authentication function triggered");
 
         try
@@ -38,6 +46,7 @@ public class AuthenticationFunction
             if (request == null || string.IsNullOrEmpty(request.IdToken))
             {
                 var badRequestResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                AddCorsHeaders(badRequestResponse, req);
                 await badRequestResponse.WriteAsJsonAsync(new { error = "Invalid request body" });
                 return badRequestResponse;
             }
@@ -47,6 +56,7 @@ public class AuthenticationFunction
             if (payload == null)
             {
                 var unauthorizedResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
+                AddCorsHeaders(unauthorizedResponse, req);
                 await unauthorizedResponse.WriteAsJsonAsync(new { error = "Invalid Google ID token" });
                 return unauthorizedResponse;
             }
@@ -113,6 +123,7 @@ public class AuthenticationFunction
 
             // Return response
             var response = req.CreateResponse(HttpStatusCode.OK);
+            AddCorsHeaders(response, req);
             await response.WriteAsJsonAsync(new AuthResponse
             {
                 UserId = user.Id,
@@ -130,9 +141,34 @@ public class AuthenticationFunction
         {
             _logger.LogError(ex, "Error during Google authentication");
             var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+            AddCorsHeaders(errorResponse, req);
             await errorResponse.WriteAsJsonAsync(new { error = "An error occurred during authentication" });
             return errorResponse;
         }
+    }
+
+    private void AddCorsHeaders(HttpResponseData response, HttpRequestData request)
+    {
+        // Get origin from request
+        var origin = request.Headers.Contains("Origin")
+            ? request.Headers.GetValues("Origin").FirstOrDefault()
+            : "*";
+
+        // Allow specific origins (localhost for development)
+        var allowedOrigins = new[] { "http://localhost:5173", "http://localhost:3000", "https://mango-bay-068c07f0f.6.azurestaticapps.net" };
+
+        if (origin != null && allowedOrigins.Contains(origin))
+        {
+            response.Headers.Add("Access-Control-Allow-Origin", origin);
+        }
+        else if (origin == "*")
+        {
+            response.Headers.Add("Access-Control-Allow-Origin", "*");
+        }
+
+        response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        response.Headers.Add("Access-Control-Allow-Credentials", "true");
     }
 
     private async Task<GoogleTokenPayload?> VerifyGoogleTokenAsync(string idToken)

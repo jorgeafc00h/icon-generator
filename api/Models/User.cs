@@ -1,8 +1,12 @@
 namespace IconGenerator.Functions.Models;
 
+using System.Text.Json.Serialization;
+
 public class User
 {
+    [JsonPropertyName("id")]
     public string Id { get; set; } = Guid.NewGuid().ToString();
+
     public string Email { get; set; } = string.Empty;
     public string? Name { get; set; }
     public string? ProfilePictureUrl { get; set; }

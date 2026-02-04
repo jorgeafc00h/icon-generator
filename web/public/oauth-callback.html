@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Signing in...</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .loader {
+      text-align: center;
+    }
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid white;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader">
+    <div class="spinner"></div>
+    <h2>Signing you in...</h2>
+    <p>This window will close automatically.</p>
+  </div>
+
+  <script>
+    // Extract id_token from URL hash
+    const hash = window.location.hash;
+    console.log('OAuth callback page loaded');
+    console.log('Hash:', hash.substring(0, 50) + '...');
+
+    if (hash && window.opener) {
+      // Extract id_token using regex
+      const idTokenMatch = hash.match(/id_token=([^&]+)/);
+
+      if (idTokenMatch) {
+        const idToken = idTokenMatch[1];
+        console.log('Found id_token, sending to opener window');
+
+        // Send token to opener window
+        window.opener.postMessage({
+          type: 'GOOGLE_AUTH_SUCCESS',
+          idToken: idToken
+        }, window.location.origin);
+
+        // Close popup after a short delay
+        setTimeout(() => {
+          window.close();
+        }, 500);
+      } else {
+        console.error('No id_token found in hash');
+        window.opener.postMessage({
+          type: 'GOOGLE_AUTH_ERROR',
+          error: 'No ID token found in response'
+        }, window.location.origin);
+
+        setTimeout(() => {
+          window.close();
+        }, 2000);
+      }
+    } else {
+      console.error('No hash or opener window');
+    }
+  </script>
+</body>
+</html>

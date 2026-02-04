@@ -29,16 +29,6 @@ export function Profile({ onUserUpdate }: ProfileProps) {
   useEffect(() => {
     console.log('🔷 Profile useEffect running...')
 
-    // Check for OAuth callback first (hash in URL)
-    const hash = window.location.hash
-    console.log('🔷 Hash:', hash ? hash.substring(0, 50) + '...' : 'none')
-
-    if (hash && hash.includes('id_token=')) {
-      console.log('🔷 OAuth callback detected in Profile, waiting for GoogleSignIn to process...')
-      setLoading(false)
-      return // Let GoogleSignIn component handle the callback
-    }
-
     // Check for payment callback
     const urlParams = new URLSearchParams(window.location.search)
     const paymentStatus = urlParams.get('payment')

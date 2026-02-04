@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using IconGenerator.Functions.Options;
 using IconGenerator.Functions.Models;
+using System.Text.Json;
 using CosmosUser = Microsoft.Azure.Cosmos.User;
 
 public class CosmosDbService : IDatabaseService
@@ -21,7 +22,16 @@ public class CosmosDbService : IDatabaseService
         _logger = logger;
         var dbOptions = options.Value;
 
-        _client = new CosmosClient(dbOptions.CosmosEndpoint, dbOptions.CosmosKey);
+        // Configure Cosmos client with proper JSON serialization
+        var cosmosClientOptions = new CosmosClientOptions
+        {
+            SerializerOptions = new CosmosSerializationOptions
+            {
+                PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+            }
+        };
+
+        _client = new CosmosClient(dbOptions.CosmosEndpoint, dbOptions.CosmosKey, cosmosClientOptions);
         var database = _client.GetDatabase(dbOptions.CosmosDatabase);
 
         _usersContainer = database.GetContainer("Users");

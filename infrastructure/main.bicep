@@ -29,6 +29,20 @@ param databaseType string = 'cosmosdb'
 @secure()
 param sqlAdminPassword string = ''
 
+@description('Stripe Secret Key (required for payments)')
+@secure()
+param stripeSecretKey string = ''
+
+@description('Stripe Webhook Secret (required for payment webhooks)')
+@secure()
+param stripeWebhookSecret string = ''
+
+@description('Google OAuth Client ID (required for authentication)')
+param googleClientId string = ''
+
+@description('Frontend URL for Stripe redirects')
+param frontendUrl string = ''
+
 @description('Tags to apply to all resources')
 param tags object = {
   Environment: environment
@@ -209,33 +223,73 @@ module functionApp './modules/function-app.bicep' = {
     runtimeVersion: '10.0'
     appSettings: concat([
       {
-        name: 'DATABASE_TYPE'
+        name: 'Database__Type'
         value: databaseType
       }
       {
-        name: 'AZURE_OPENAI_ENDPOINT'
+        name: 'AzureOpenAI__Endpoint'
         value: openAI.outputs.endpoint
       }
       {
-        name: 'STORAGE_CONTAINER_NAME'
+        name: 'AzureOpenAI__ApiKey'
+        value: openAI.outputs.apiKey
+      }
+      {
+        name: 'AzureOpenAI__DallE3Deployment'
+        value: 'dall-e-3'
+      }
+      {
+        name: 'AzureOpenAI__Gpt4oMiniDeployment'
+        value: 'gpt-4o-mini'
+      }
+      {
+        name: 'Storage__ConnectionString'
+        value: storage.outputs.connectionString
+      }
+      {
+        name: 'Storage__ContainerName'
         value: 'generated-icons'
+      }
+      {
+        name: 'AllowedOrigins'
+        value: '*'
+      }
+      {
+        name: 'Stripe__SecretKey'
+        value: stripeSecretKey
+      }
+      {
+        name: 'Stripe__WebhookSecret'
+        value: stripeWebhookSecret
+      }
+      {
+        name: 'Stripe__FrontendUrl'
+        value: frontendUrl
       }
     ], databaseType == 'cosmosdb' ? [
       {
-        name: 'COSMOS_ENDPOINT'
+        name: 'Database__CosmosEndpoint'
         value: cosmosDb.outputs.endpoint
+      }
+      {
+        name: 'Database__CosmosKey'
+        value: cosmosDb.outputs.primaryKey
+      }
+      {
+        name: 'Database__CosmosDatabase'
+        value: 'IconGeneratorDB'
       }
     ] : [
       {
-        name: 'SQL_CONNECTION_STRING'
+        name: 'Database__SqlConnectionString'
         value: azureSQL.outputs.connectionString
       }
       {
-        name: 'SQL_SERVER'
+        name: 'Database__SqlServer'
         value: azureSQL.outputs.fullyQualifiedDomainName
       }
       {
-        name: 'SQL_DATABASE'
+        name: 'Database__SqlDatabase'
         value: sqlDatabaseName
       }
     ])

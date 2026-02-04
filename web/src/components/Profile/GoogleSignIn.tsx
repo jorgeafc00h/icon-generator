@@ -16,37 +16,38 @@ declare global {
 export function GoogleSignIn({ onSuccess, onError, variant = 'default' }: GoogleSignInProps) {
   const [processing, setProcessing] = useState(false)
 
-  // Process auth callback immediately on mount
+  // Listen for messages from OAuth popup
   useEffect(() => {
-    processAuthCallback()
-  }, [])
+    const handleMessage = async (event: MessageEvent) => {
+      // Verify origin for security
+      if (event.origin !== window.location.origin) {
+        return
+      }
 
-  const processAuthCallback = async () => {
-    const hash = window.location.hash
-
-    if (!hash || processing) {
-      return
+      if (event.data.type === 'GOOGLE_AUTH_SUCCESS') {
+        console.log('✅ Received auth token from popup')
+        await processAuthToken(event.data.idToken)
+      } else if (event.data.type === 'GOOGLE_AUTH_ERROR') {
+        console.error('❌ Auth error from popup:', event.data.error)
+        toast.error('Authentication failed. Please try again.')
+        setProcessing(false)
+        if (onError) {
+          onError(new Error(event.data.error))
+        }
+      }
     }
 
-    console.log('🔍 Checking for OAuth callback...')
-    console.log('Hash:', hash.substring(0, 100) + '...')
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [onSuccess, onError])
 
-    // Extract id_token from hash
-    const idTokenMatch = hash.match(/id_token=([^&]+)/)
-
-    if (!idTokenMatch) {
-      console.log('❌ No id_token found in hash')
-      return
-    }
-
-    const idToken = idTokenMatch[1]
-    console.log('✅ Found ID token (length:', idToken.length, ')')
-
+  const processAuthToken = async (idToken: string) => {
     setProcessing(true)
     const loadingToast = toast.loading('Signing you in...')
 
     try {
       console.log('📤 Sending to backend...')
+      console.log('ID Token length:', idToken.length)
 
       const res = await fetch(`${import.meta.env.VITE_API_ENDPOINT}/auth/google`, {
         method: 'POST',
@@ -58,14 +59,16 @@ export function GoogleSignIn({ onSuccess, onError, variant = 'default' }: Google
 
       console.log('📥 Response status:', res.status)
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({ error: 'Unknown error' }))
-        console.error('❌ Auth failed:', errorData)
-        toast.error(`Authentication failed: ${errorData.error || 'Please try again'}`, { id: loadingToast })
+      const authResponse = await res.json()
+      console.log('📦 Full response:', authResponse)
+
+      if (!res.ok || authResponse.error) {
+        console.error('❌ Auth failed:', authResponse)
+        toast.error(`Authentication failed: ${authResponse.error || 'Please try again'}`, { id: loadingToast })
+        setProcessing(false)
         return
       }
 
-      const authResponse = await res.json()
       console.log('✅ Auth successful!', { userId: authResponse.userId, email: authResponse.email })
 
       // Store everything
@@ -78,10 +81,6 @@ export function GoogleSignIn({ onSuccess, onError, variant = 'default' }: Google
       console.log('💾 Stored in localStorage')
 
       toast.success(`Welcome, ${authResponse.name || 'User'}!`, { id: loadingToast })
-
-      // Clean URL
-      window.history.replaceState({}, '', window.location.pathname)
-      console.log('🧹 Cleaned URL')
 
       // Call success callback - this will update the Profile component's state
       if (onSuccess) {
@@ -106,9 +105,9 @@ export function GoogleSignIn({ onSuccess, onError, variant = 'default' }: Google
 
   const handleSignIn = () => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
-    const redirectUri = `${window.location.origin}/profile`
+    const redirectUri = `${window.location.origin}/oauth-callback.html`
 
-    console.log('🚀 Starting OAuth flow...')
+    console.log('🚀 Starting OAuth popup flow...')
     console.log('Client ID:', clientId)
     console.log('Redirect URI:', redirectUri)
 
@@ -119,8 +118,36 @@ export function GoogleSignIn({ onSuccess, onError, variant = 'default' }: Google
       `scope=openid%20email%20profile&` +
       `nonce=${Date.now()}`
 
-    console.log('📍 Redirecting to Google...')
-    window.location.href = authUrl
+    // Open popup window
+    const width = 500
+    const height = 600
+    const left = window.screen.width / 2 - width / 2
+    const top = window.screen.height / 2 - height / 2
+
+    const popup = window.open(
+      authUrl,
+      'Google Sign In',
+      `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,location=no,status=no`
+    )
+
+    if (!popup) {
+      toast.error('Popup blocked! Please allow popups for this site.')
+      return
+    }
+
+    console.log('📍 Opened Google OAuth popup')
+    setProcessing(true)
+
+    // Check if popup was closed without completing auth
+    const checkClosed = setInterval(() => {
+      if (popup.closed) {
+        clearInterval(checkClosed)
+        if (processing) {
+          console.log('⚠️ Popup closed without completing auth')
+          setProcessing(false)
+        }
+      }
+    }, 1000)
   }
 
   if (variant === 'large') {

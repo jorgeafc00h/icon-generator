@@ -19,7 +19,7 @@ pr:
 
 variables:
   - name: azureSubscription
-    value: 'icon-generator-azure' # Replace with your actual service connection name from Azure DevOps
+    value: 'Azure Prod' # Replace with your actual service connection name from Azure DevOps
   # Add these as secret variables in Azure DevOps Pipeline Variables:
   # - GOOGLE_CLIENT_ID
   # - STRIPE_PUBLIC_KEY

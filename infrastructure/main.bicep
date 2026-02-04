@@ -43,6 +43,9 @@ param googleClientId string = ''
 @description('Frontend URL for Stripe redirects')
 param frontendUrl string = ''
 
+@description('Enable Free Tier for Cosmos DB (opt-in; only one free-tier account per subscription)')
+param enableCosmosFreeTier bool = true
+
 @description('Tags to apply to all resources')
 param tags object = {
   Environment: environment
@@ -54,20 +57,18 @@ param tags object = {
 // Variables
 // ==============================================
 
-var resourceSuffix = '${baseName}-${environment}-${uniqueString(resourceGroup().id)}'
-// Storage account names must be 3-24 characters, lowercase letters and numbers only
-// Compose a deterministic short name using baseName + truncated uniqueString
-var storageAccountName = toLower(take('${baseName}${take(uniqueString(resourceGroup().id), 8)}', 24))
-var functionAppName = 'func-${resourceSuffix}'
-var appServicePlanName = 'asp-${resourceSuffix}'
-var staticWebAppName = 'swa-${resourceSuffix}'
-var cosmosAccountName = 'cosmos-${resourceSuffix}'
-var sqlServerName = 'sql-${resourceSuffix}'
+// Use static resource names to match existing resources and enable updates
+var storageAccountName = 'iconfgenisp4yt2h' // Existing storage account
+var functionAppName = 'func-icon-generator-${environment}'
+var appServicePlanName = 'asp-icon-generator-${environment}'
+var staticWebAppName = 'icon-generator-pro' // Existing Static Web App
+var cosmosAccountName = 'cosmos-icon-generator' // Existing Cosmos DB with free tier
+var sqlServerName = 'sql-icon-generator-${environment}'
 var sqlDatabaseName = 'IconGeneratorDB'
-var openAIName = 'openai-${resourceSuffix}'
-var appInsightsName = 'ai-${resourceSuffix}'
-var logAnalyticsName = 'log-${resourceSuffix}'
-var keyVaultName = 'kv-${take(resourceSuffix, 20)}'
+var openAIName = 'openai-icon-generator' // Existing OpenAI
+var appInsightsName = 'ai-icon-generator-${environment}'
+var logAnalyticsName = 'log-icon-generator-${environment}'
+var keyVaultName = 'kv-icon-gen-${environment}'
 
 // ==============================================
 // Module: Log Analytics Workspace
@@ -132,7 +133,8 @@ module cosmosDb './modules/cosmos-db.bicep' = if (databaseType == 'cosmosdb') {
     location: location
     tags: tags
     // Free tier: 1000 RU/s + 25GB storage free forever (one per subscription)
-    enableFreeTier: true
+    // Controlled via `enableCosmosFreeTier` param to avoid deployment failures
+    enableFreeTier: enableCosmosFreeTier
     // Serverless: pay per request (good for dev/staging)
     enableServerless: environment != 'prod'
   }

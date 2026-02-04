@@ -55,7 +55,8 @@ stages:
                   --resource-group $(resourceGroupName) \
                   --template-file infrastructure/main.bicep \
                   --parameters infrastructure/parameters.dev.json \
-                  --parameters location=$(location)
+                  --parameters location=$(location) \
+                  --name infrastructure-deployment
 
           - task: AzureCLI@2
             displayName: 'Configure Static Web App Environment Variables'
@@ -67,7 +68,7 @@ stages:
                 # Get Function App URL from deployment outputs
                 FUNC_APP_NAME=$(az deployment group show \
                   --resource-group $(resourceGroupName) \
-                  --name main \
+                  --name infrastructure-deployment \
                   --query properties.outputs.functionAppName.value \
                   --output tsv)
                 
@@ -80,7 +81,7 @@ stages:
                 # Get Static Web App name
                 STATIC_APP_NAME=$(az deployment group show \
                   --resource-group $(resourceGroupName) \
-                  --name main \
+                  --name infrastructure-deployment \
                   --query properties.outputs.staticWebAppName.value \
                   --output tsv)
                 
@@ -191,7 +192,7 @@ stages:
                     inlineScript: |
                       functionAppName=$(az deployment group show \
                         --resource-group $(resourceGroupName) \
-                        --name main \
+                        --name infrastructure-deployment \
                         --query properties.outputs.functionAppName.value \
                         --output tsv)
                       echo "##vso[task.setvariable variable=functionAppName]$functionAppName"

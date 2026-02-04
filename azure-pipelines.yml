@@ -146,26 +146,12 @@ stages:
                   artifact: functions
                   displayName: 'Download Function Artifact'
 
-                - task: AzureCLI@2
-                  displayName: 'Get Function App Name'
-                  inputs:
-                    azureSubscription: $(azureSubscription)
-                    scriptType: 'bash'
-                    scriptLocation: 'inlineScript'
-                    inlineScript: |
-                      functionAppName=$(az deployment group show \
-                        --resource-group $(resourceGroupName) \
-                        --name infrastructure-deployment \
-                        --query properties.outputs.functionAppName.value \
-                        --output tsv)
-                      echo "##vso[task.setvariable variable=functionAppName]$functionAppName"
-
                 - task: AzureFunctionApp@2
                   displayName: 'Deploy to Azure Functions'
                   inputs:
                     azureSubscription: $(azureSubscription)
                     appType: 'functionAppLinux'
-                    appName: $(functionAppName)
+                    appName: 'func-icon-generator'
                     package: '$(Pipeline.Workspace)/functions/functions.zip'
                     runtimeStack: 'DOTNET-ISOLATED|10.0'
                     deploymentMethod: 'auto'

@@ -51,6 +51,7 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'DOTNET-ISOLATED|${runtimeVersion}'
+      alwaysOn: false // Disabled to avoid additional charges on consumption plan
       appSettings: concat([
         {
           name: 'AzureWebJobsStorage'

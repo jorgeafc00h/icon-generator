@@ -59,8 +59,8 @@ param tags object = {
 
 // Use static resource names to match existing resources and enable updates
 var storageAccountName = 'sticongen' // Existing storage account with data
-var functionAppName = 'func-icon-generator-${environment}'
-var appServicePlanName = 'asp-icon-generator-${environment}'
+var functionAppName = 'func-icon-generator' // Static function app name
+var appServicePlanName = 'asp-icon-generator' // Static app service plan name
 var staticWebAppName = 'icon-generator-pro' // Existing Static Web App
 var cosmosAccountName = 'cosmos-icon-generator' // Existing Cosmos DB with free tier
 var sqlServerName = 'sql-icon-generator-${environment}'
@@ -200,8 +200,8 @@ module appServicePlan './modules/app-service-plan.bicep' = {
     location: location
     tags: tags
     sku: {
-      name: environment == 'prod' ? 'P1v3' : 'Y1'
-      tier: environment == 'prod' ? 'PremiumV3' : 'Dynamic'
+      name: 'Y1' // Consumption plan (free tier)
+      tier: 'Dynamic'
     }
     kind: 'linux'
     reserved: true

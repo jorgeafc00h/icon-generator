@@ -62,7 +62,7 @@ param tags object = {
 
 // Use static resource names to match existing resources and enable updates
 var storageAccountName = 'sticongen' // Existing storage account with data
-var functionAppName = 'func-icon-generator-${environment}' // Static function app name
+var functionAppName = 'func-icon-generator' // Static function app name
 var appServicePlanName = 'asp-icon-generator' // Static app service plan name
 var staticWebAppName = 'icon-generator-pro' // Existing Static Web App
 var cosmosAccountName = 'cosmos-icon-generator' // Existing Cosmos DB with free tier

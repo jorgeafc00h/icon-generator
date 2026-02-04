@@ -57,45 +57,8 @@ stages:
                   --parameters infrastructure/parameters.dev.json \
                   --parameters location=$(location) \
                   --name infrastructure-deployment
-
-          - task: AzureCLI@2
-            displayName: 'Configure Static Web App Environment Variables'
-            inputs:
-              azureSubscription: $(azureSubscription)
-              scriptType: 'bash'
-              scriptLocation: 'inlineScript'
-              inlineScript: |
-                # Get Function App URL from deployment outputs
-                FUNC_APP_NAME=$(az deployment group show \
-                  --resource-group $(resourceGroupName) \
-                  --name infrastructure-deployment \
-                  --query properties.outputs.functionAppName.value \
-                  --output tsv)
                 
-                FUNC_APP_URL=$(az functionapp show \
-                  --resource-group $(resourceGroupName) \
-                  --name $FUNC_APP_NAME \
-                  --query defaultHostName \
-                  --output tsv)
-                
-                # Get Static Web App name
-                STATIC_APP_NAME=$(az deployment group show \
-                  --resource-group $(resourceGroupName) \
-                  --name infrastructure-deployment \
-                  --query properties.outputs.staticWebAppName.value \
-                  --output tsv)
-                
-                # Set environment variables
-                az staticwebapp appsettings set \
-                  --name $STATIC_APP_NAME \
-                  --resource-group $(resourceGroupName) \
-                  --setting-names \
-                    VITE_API_ENDPOINT="https://$FUNC_APP_URL/api" \
-                    VITE_GOOGLE_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
-                    VITE_STRIPE_PUBLIC_KEY="$(STRIPE_PUBLIC_KEY)"
-                
-                echo "✅ Static Web App environment variables configured"
-                echo "API Endpoint: https://$FUNC_APP_URL/api"
+                echo "✅ Infrastructure deployment completed"
 
   # ============================================
   # Stage 2: Build Backend (Azure Functions)
@@ -207,3 +170,55 @@ stages:
                     runtimeStack: 'DOTNET-ISOLATED|10.0'
                     deploymentMethod: 'auto'
 
+  # ============================================
+  # Stage 4: Configure Static Web App
+  # ============================================
+  - stage: ConfigureStaticWebApp
+    displayName: 'Configure Static Web App'
+    dependsOn: DeployBackend
+    jobs:
+      - job: SetEnvironmentVariables
+        displayName: 'Set Environment Variables'
+        pool:
+          vmImage: $(vmImageName)
+        steps:
+          - task: AzureCLI@2
+            displayName: 'Configure Static Web App Environment Variables'
+            inputs:
+              azureSubscription: $(azureSubscription)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Get Function App name from deployment outputs
+                FUNC_APP_NAME=$(az deployment group show \
+                  --resource-group $(resourceGroupName) \
+                  --name infrastructure-deployment \
+                  --query properties.outputs.functionAppName.value \
+                  --output tsv)
+                
+                # Get Function App URL
+                FUNC_APP_URL=$(az functionapp show \
+                  --resource-group $(resourceGroupName) \
+                  --name $FUNC_APP_NAME \
+                  --query defaultHostName \
+                  --output tsv)
+                
+                # Static Web App name (using static name)
+                STATIC_APP_NAME="icon-generator-pro"
+                
+                echo "Configuring Static Web App: $STATIC_APP_NAME"
+                echo "Function App URL: https://$FUNC_APP_URL/api"
+                
+                # Set environment variables for Static Web App
+                az staticwebapp appsettings set \
+                  --name $STATIC_APP_NAME \
+                  --resource-group $(resourceGroupName) \
+                  --setting-names \
+                    VITE_API_ENDPOINT="https://$FUNC_APP_URL/api" \
+                    VITE_GOOGLE_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
+                    VITE_STRIPE_PUBLIC_KEY="$(STRIPE_PUBLIC_KEY)"
+                
+                echo "✅ Static Web App environment variables configured successfully"
+                echo "   - VITE_API_ENDPOINT: https://$FUNC_APP_URL/api"
+                echo "   - VITE_GOOGLE_CLIENT_ID: [CONFIGURED]"
+                echo "   - VITE_STRIPE_PUBLIC_KEY: [CONFIGURED]"

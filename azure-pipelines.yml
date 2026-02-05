@@ -33,6 +33,8 @@ variables:
     value: '18.x'
   - name: 'functionAppName'
     value: 'func-icon-generator' # Static function app name
+  - name: 'environment'
+    value: 'prod'
 
 stages:
   # ============================================
@@ -58,7 +60,8 @@ stages:
                   --template-file infrastructure/main.bicep \
                   --parameters infrastructure/parameters.dev.json \
                   --parameters location=$(location) \
-                  --parametesrs functionAppName=$(functionAppName) \
+                  --parameters functionAppName=$(functionAppName) \
+                  --parameters environment=$(environment) \
                   --name infrastructure-deployment
                 
                 echo "✅ Infrastructure deployment completed"
@@ -154,7 +157,7 @@ stages:
                   inputs:
                     azureSubscription: $(azureSubscription)
                     appType: 'functionAppLinux'
-                    appName: $(functionAppName)
+                    appName: '$(functionAppName)-$(environment)'
                     package: '$(Pipeline.Workspace)/functions/functions.zip'
                     runtimeStack: 'DOTNET-ISOLATED|10.0'
                     deploymentMethod: 'auto'

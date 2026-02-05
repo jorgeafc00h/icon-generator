@@ -56,17 +56,13 @@ param tags object = {
   ManagedBy: 'Bicep'
 }
 
-@description('Azure Function name')
-param functionAppName string = ''
-
 // ==============================================
 // Variables
 // ==============================================
 
-
 // Use static resource names to match existing resources and enable updates
 var storageAccountName = 'sticongen' // Existing storage account with data
-
+var functionAppName = 'func-icon-generator-${environment}' // Function app name matching Azure
 var appServicePlanName = 'asp-icon-generator' // Static app service plan name
 var staticWebAppName = 'icon-generator-pro' // Existing Static Web App
 var cosmosAccountName = 'cosmos-icon-generator' // Existing Cosmos DB with free tier
@@ -212,7 +208,7 @@ module appServicePlan './modules/app-service-plan.bicep' = {
     location: location
     tags: tags
     sku: {
-      name: 'Y1' // Consumption plan (free tier)
+      name: 'Y1' // Consumption plan (pay-per-execution)
       tier: 'Dynamic'
     }
     kind: 'linux'
@@ -225,7 +221,7 @@ module appServicePlan './modules/app-service-plan.bicep' = {
 // ==============================================
 
 module functionApp './modules/function-app.bicep' = {
-  name: functionAppName
+  name: 'function-app-deployment'
   params: {
     name: functionAppName
     location: location
@@ -315,6 +311,7 @@ module functionApp './modules/function-app.bicep' = {
     ])
   }
 }
+
 
 // ==============================================
 // Module: Static Web App

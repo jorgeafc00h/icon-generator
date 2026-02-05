@@ -37,7 +37,7 @@ param runtimeVersion string = '10.0'
 param appSettings array = []
 
 // Function App
-resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
+resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
   name: name
   location: location
   tags: tags
@@ -51,7 +51,7 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
     httpsOnly: true
     siteConfig: {
       linuxFxVersion: 'DOTNET-ISOLATED|${runtimeVersion}'
-      alwaysOn: false // Disabled to avoid additional charges on consumption plan
+      alwaysOn: false // Must be false for consumption plan
       appSettings: concat([
         {
           name: 'AzureWebJobsStorage'

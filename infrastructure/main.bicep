@@ -225,7 +225,7 @@ module appServicePlan './modules/app-service-plan.bicep' = {
 // ==============================================
 
 module functionApp './modules/function-app.bicep' = {
-  name: 'function-app-deployment'
+  name: functionAppName
   params: {
     name: functionAppName
     location: location

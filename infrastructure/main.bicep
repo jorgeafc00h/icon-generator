@@ -149,7 +149,7 @@ module cosmosDb './modules/cosmos-db.bicep' = if (databaseType == 'cosmosdb' && 
 
 // When using an existing Cosmos DB account we will not attempt to modify its capabilities
 // Use runtime functions to read keys/endpoints for wiring into app settings
-var cosmosEndpointEffective = databaseType == 'cosmosdb' ? (useExistingCosmos ? reference(resourceId('Microsoft.DocumentDB/databaseAccounts', cosmosAccountName), '2023-11-15').properties.documentEndpoint : cosmosDb.outputs.endpoint) : ''
+var cosmosEndpointEffective = databaseType == 'cosmosdb' ? (useExistingCosmos ? reference(resourceId('Microsoft.DocumentDB/databaseAccounts', cosmosAccountName), '2023-11-15').documentEndpoint : cosmosDb.outputs.endpoint) : ''
 var cosmosPrimaryKeyEffective = databaseType == 'cosmosdb' ? (useExistingCosmos ? listKeys(resourceId('Microsoft.DocumentDB/databaseAccounts', cosmosAccountName), '2023-11-15').primaryMasterKey : cosmosDb.outputs.primaryKey) : ''
 
 // ==============================================

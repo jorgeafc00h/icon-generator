@@ -31,8 +31,8 @@ variables:
     value: 'ubuntu-latest'
   - name: nodeVersion
     value: '18.x'
-  - name: 'functionAppName'
-    value: 'func-icon-generator' # Static function app name
+  - name: 'webAppName'
+    value: 'webapp-icon-generator' # Static web app name
   - name: 'environment'
     value: 'prod'
 
@@ -67,14 +67,14 @@ stages:
                 echo "✅ Infrastructure deployment completed"
 
   # ============================================
-  # Stage 2: Build Backend (Azure Functions)
+  # Stage 2: Build Backend (ASP.NET Core Web API)
   # ============================================
   - stage: BuildBackend
     displayName: 'Build Backend'
     dependsOn: Infrastructure
     jobs:
-      - job: BuildFunctions
-        displayName: 'Build Azure Functions'
+      - job: BuildWebAPI
+        displayName: 'Build Web API'
         pool:
           vmImage: $(vmImageName)
         steps:
@@ -87,38 +87,29 @@ stages:
             displayName: 'Restore NuGet Packages'
             inputs:
               command: 'restore'
-              projects: 'api/IconGenerator.Functions.csproj'
+              projects: 'api-webapi/IconGenerator.WebApi/IconGenerator.WebApi.csproj'
 
           - task: DotNetCoreCLI@2
-            displayName: 'Build Functions'
+            displayName: 'Build Web API'
             inputs:
               command: 'build'
-              projects: 'api/IconGenerator.Functions.csproj'
+              projects: 'api-webapi/IconGenerator.WebApi/IconGenerator.WebApi.csproj'
               arguments: '--configuration Release'
 
           - task: DotNetCoreCLI@2
-            displayName: 'Publish Functions'
+            displayName: 'Publish Web API'
             inputs:
               command: 'publish'
               publishWebProjects: false
-              projects: 'api/IconGenerator.Functions.csproj'
-              arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/functions'
-              zipAfterPublish: false
-
-          - task: ArchiveFiles@2
-            displayName: 'Archive Functions'
-            inputs:
-              rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/functions'
-              includeRootFolder: false
-              archiveType: 'zip'
-              archiveFile: '$(Build.ArtifactStagingDirectory)/functions.zip'
-              replaceExistingArchive: true
+              projects: 'api-webapi/IconGenerator.WebApi/IconGenerator.WebApi.csproj'
+              arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)/webapi'
+              zipAfterPublish: true
 
           - task: PublishBuildArtifacts@1
-            displayName: 'Publish Function Artifact'
+            displayName: 'Publish Web API Artifact'
             inputs:
-              PathtoPublish: '$(Build.ArtifactStagingDirectory)/functions.zip'
-              ArtifactName: 'functions'
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)/webapi'
+              ArtifactName: 'webapi'
               publishLocation: 'Container'
 
   # ============================================
@@ -133,14 +124,14 @@ stages:
   #       ... (frontend build tasks disabled)
 
   # ============================================
-  # Stage 3: Deploy Backend (Azure Functions)
+  # Stage 3: Deploy Backend (ASP.NET Core Web API)
   # ============================================
   - stage: DeployBackend
     displayName: 'Deploy Backend'
     dependsOn: BuildBackend
     jobs:
-      - deployment: DeployFunctions
-        displayName: 'Deploy Azure Functions'
+      - deployment: DeployWebAPI
+        displayName: 'Deploy Web API'
         environment: 'production'
         pool:
           vmImage: $(vmImageName)
@@ -149,18 +140,17 @@ stages:
             deploy:
               steps:
                 - download: current
-                  artifact: functions
-                  displayName: 'Download Function Artifact'
+                  artifact: webapi
+                  displayName: 'Download Web API Artifact'
 
-                - task: AzureFunctionApp@2
-                  displayName: 'Deploy to Azure Functions'
+                - task: AzureWebApp@1
+                  displayName: 'Deploy to Azure Web App'
                   inputs:
                     azureSubscription: $(azureSubscription)
-                    appType: 'functionAppLinux'
-                    appName: '$(functionAppName)-$(environment)'
-                    package: '$(Pipeline.Workspace)/functions/functions.zip'
-                    runtimeStack: 'DOTNET-ISOLATED|10.0'
-                    deploymentMethod: 'auto'
+                    appType: 'webAppLinux'
+                    appName: '$(webAppName)-$(environment)'
+                    package: '$(Pipeline.Workspace)/webapi/*.zip'
+                    runtimeStack: 'DOTNETCORE|10.0'
 
   # ============================================
   # Stage 4: Configure Static Web App
@@ -181,36 +171,36 @@ stages:
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
-                # Get Function App name from deployment outputs
-                FUNC_APP_NAME=$(az deployment group show \
+                # Get Web App name from deployment outputs
+                WEB_APP_NAME=$(az deployment group show \
                   --resource-group $(resourceGroupName) \
                   --name infrastructure-deployment \
-                  --query properties.outputs.functionAppName.value \
+                  --query properties.outputs.webAppName.value \
                   --output tsv)
-                
-                # Get Function App URL
-                FUNC_APP_URL=$(az functionapp show \
+
+                # Get Web App URL
+                WEB_APP_URL=$(az webapp show \
                   --resource-group $(resourceGroupName) \
-                  --name $FUNC_APP_NAME \
+                  --name $WEB_APP_NAME \
                   --query defaultHostName \
                   --output tsv)
-                
+
                 # Static Web App name (using static name)
                 STATIC_APP_NAME="icon-generator-pro"
-                
+
                 echo "Configuring Static Web App: $STATIC_APP_NAME"
-                echo "Function App URL: https://$FUNC_APP_URL/api"
-                
+                echo "Web App URL: https://$WEB_APP_URL/api"
+
                 # Set environment variables for Static Web App
                 az staticwebapp appsettings set \
                   --name $STATIC_APP_NAME \
                   --resource-group $(resourceGroupName) \
                   --setting-names \
-                    VITE_API_ENDPOINT="https://$FUNC_APP_URL/api" \
+                    VITE_API_ENDPOINT="https://$WEB_APP_URL/api" \
                     VITE_GOOGLE_CLIENT_ID="$(GOOGLE_CLIENT_ID)" \
                     VITE_STRIPE_PUBLIC_KEY="$(STRIPE_PUBLIC_KEY)"
-                
+
                 echo "✅ Static Web App environment variables configured successfully"
-                echo "   - VITE_API_ENDPOINT: https://$FUNC_APP_URL/api"
+                echo "   - VITE_API_ENDPOINT: https://$WEB_APP_URL/api"
                 echo "   - VITE_GOOGLE_CLIENT_ID: [CONFIGURED]"
                 echo "   - VITE_STRIPE_PUBLIC_KEY: [CONFIGURED]"

@@ -43,6 +43,10 @@ param googleClientId string = ''
 @description('Frontend URL for Stripe redirects')
 param frontendUrl string = ''
 
+@description('JWT Secret Key for token signing (generate with: openssl rand -base64 32)')
+@secure()
+param jwtSecretKey string = ''
+
 @description('Enable Free Tier for Cosmos DB (opt-in; only one free-tier account per subscription)')
 param enableCosmosFreeTier bool = true
 
@@ -62,7 +66,7 @@ param tags object = {
 
 // Use static resource names to match existing resources and enable updates
 var storageAccountName = 'sticongen' // Existing storage account with data
-var functionAppName = 'func-icon-generator-${environment}' // Function app name matching Azure
+var webAppName = 'webapp-icon-generator-${environment}' // Web app name for ASP.NET Core API
 var appServicePlanName = 'asp-icon-generator' // Static app service plan name
 var staticWebAppName = 'icon-generator-pro' // Existing Static Web App
 var cosmosAccountName = 'cosmos-icon-generator' // Existing Cosmos DB with free tier
@@ -198,7 +202,7 @@ module keyVault './modules/key-vault.bicep' = {
 }
 
 // ==============================================
-// Module: App Service Plan (for Functions)
+// Module: App Service Plan (for Web App)
 // ==============================================
 
 module appServicePlan './modules/app-service-plan.bicep' = {
@@ -208,8 +212,8 @@ module appServicePlan './modules/app-service-plan.bicep' = {
     location: location
     tags: tags
     sku: {
-      name: 'Y1' // Consumption plan (pay-per-execution)
-      tier: 'Dynamic'
+      name: environment == 'prod' ? 'S1' : 'B1' // Basic for dev/staging, Standard for production
+      tier: environment == 'prod' ? 'Standard' : 'Basic'
     }
     kind: 'linux'
     reserved: true
@@ -217,22 +221,28 @@ module appServicePlan './modules/app-service-plan.bicep' = {
 }
 
 // ==============================================
-// Module: Function App
+// Module: Web App (ASP.NET Core API)
 // ==============================================
 
-module functionApp './modules/function-app.bicep' = {
-  name: 'function-app-deployment'
+module webApp './modules/web-app.bicep' = {
+  name: 'web-app-deployment'
   params: {
-    name: functionAppName
+    name: webAppName
     location: location
     tags: tags
     appServicePlanId: appServicePlan.outputs.planId
-    storageAccountName: storage.outputs.storageAccountName
-    storageAccountKey: storage.outputs.storageAccountKey
     appInsightsInstrumentationKey: appInsights.outputs.instrumentationKey
     appInsightsConnectionString: appInsights.outputs.connectionString
-    runtime: 'dotnet-isolated'
+    jwtSecretKey: jwtSecretKey
+    jwtIssuer: 'icon-generator-api'
+    jwtAudience: 'icon-generator-client'
+    jwtExpirationMinutes: 10080 // 7 days
     runtimeVersion: '10.0'
+    allowedOrigins: [
+      'http://localhost:5173'
+      'http://localhost:3000'
+      'https://mango-bay-068c07f0f.6.azurestaticapps.net'
+    ]
     appSettings: concat([
       {
         name: 'Database__Type'
@@ -267,10 +277,6 @@ module functionApp './modules/function-app.bicep' = {
         value: googleClientId
       }
       {
-        name: 'AllowedOrigins'
-        value: '*'
-      }
-      {
         name: 'Stripe__SecretKey'
         value: stripeSecretKey
       }
@@ -281,6 +287,10 @@ module functionApp './modules/function-app.bicep' = {
       {
         name: 'Stripe__FrontendUrl'
         value: frontendUrl
+      }
+      {
+        name: 'AppSettings__UnlimitedUsers__0'
+        value: 'jorgeafc00h@gmail.com'
       }
     ] , databaseType == 'cosmosdb' ? [
       {
@@ -351,10 +361,10 @@ output openAIName string = openAI.outputs.name
 output openAIEndpoint string = openAI.outputs.endpoint
 output openAIKey string = openAI.outputs.apiKey
 
-// Function App outputs
-output functionAppName string = functionApp.outputs.functionAppName
-output functionAppUrl string = functionApp.outputs.functionAppUrl
-output functionAppPrincipalId string = functionApp.outputs.principalId
+// Web App outputs
+output webAppName string = webApp.outputs.webAppName
+output webAppUrl string = webApp.outputs.webAppUrl
+output webAppPrincipalId string = webApp.outputs.principalId
 
 // Static Web App outputs
 output staticWebAppName string = staticWebApp.outputs.name

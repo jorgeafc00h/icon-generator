@@ -60,13 +60,16 @@ stages:
               scriptLocation: 'inlineScript'
               inlineScript: |
                 # Validate required secrets
-                if [ -z "$(JWT_SECRET_KEY)" ]; then
+                if [ -z "$JWT_SECRET_KEY" ]; then
                   echo "❌ ERROR: JWT_SECRET_KEY is required but not set"
                   echo "Add it as a secret variable in Azure DevOps Pipeline Variables"
+                  echo "Generate with: openssl rand -base64 32"
                   exit 1
                 fi
                 
                 echo "🚀 Starting infrastructure deployment..."
+                echo "Resource Group: $(resourceGroupName)"
+                echo "Environment: $(environment)"
                 
                 az deployment group create \
                   --resource-group $(resourceGroupName) \
@@ -74,14 +77,15 @@ stages:
                   --parameters infrastructure/parameters.dev.json \
                   --parameters location=$(location) \
                   --parameters environment=$(environment) \
-                  --parameters jwtSecretKey="$(JWT_SECRET_KEY)" \
-                  --parameters stripeSecretKey="$(STRIPE_SECRET_KEY)" \
-                  --parameters stripeWebhookSecret="$(STRIPE_WEBHOOK_SECRET)" \
-                  --parameters googleClientId="$(GOOGLE_CLIENT_ID)" \
-                  --parameters frontendUrl="$(FRONTEND_URL)" \
+                  --parameters jwtSecretKey="$JWT_SECRET_KEY" \
+                  --parameters stripeSecretKey="$STRIPE_SECRET_KEY" \
+                  --parameters stripeWebhookSecret="$STRIPE_WEBHOOK_SECRET" \
+                  --parameters googleClientId="$GOOGLE_CLIENT_ID" \
+                  --parameters frontendUrl="$FRONTEND_URL" \
                   --name infrastructure-deployment
                 
                 # Verify Static Web App was created
+                echo "Verifying Static Web App creation..."
                 STATIC_APP_EXISTS=$(az staticwebapp show \
                   --name icon-generator-pro \
                   --resource-group $(resourceGroupName) \
@@ -89,12 +93,19 @@ stages:
                 
                 if [ -z "$STATIC_APP_EXISTS" ]; then
                   echo "❌ ERROR: Static Web App was not created!"
+                  echo "Check deployment logs for errors"
                   exit 1
                 else
                   echo "✅ Static Web App 'icon-generator-pro' created successfully"
                 fi
 
                 echo "✅ Infrastructure deployment completed"
+            env:
+              JWT_SECRET_KEY: $(JWT_SECRET_KEY)
+              STRIPE_SECRET_KEY: $(STRIPE_SECRET_KEY)
+              STRIPE_WEBHOOK_SECRET: $(STRIPE_WEBHOOK_SECRET)
+              GOOGLE_CLIENT_ID: $(GOOGLE_CLIENT_ID)
+              FRONTEND_URL: $(FRONTEND_URL)
 
   # ============================================
   # Stage 2: Build Backend (ASP.NET Core Web API)

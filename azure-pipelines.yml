@@ -20,9 +20,13 @@ pr:
 variables:
   - name: azureSubscription
     value: 'Azure Prod' # Replace with your actual service connection name from Azure DevOps
-  # Add these as secret variables in Azure DevOps Pipeline Variables:
+  # REQUIRED: Add these as secret variables in Azure DevOps Pipeline Variables:
+  # - JWT_SECRET_KEY (generate with: openssl rand -base64 32)
+  # - STRIPE_SECRET_KEY
+  # - STRIPE_WEBHOOK_SECRET
   # - GOOGLE_CLIENT_ID
   # - STRIPE_PUBLIC_KEY
+  # - FRONTEND_URL (e.g., https://your-static-web-app.azurestaticapps.net)
   - name: resourceGroupName
     value: 'rg-icon-generator'
   - name: location
@@ -55,13 +59,40 @@ stages:
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
+                # Validate required secrets
+                if [ -z "$(JWT_SECRET_KEY)" ]; then
+                  echo "❌ ERROR: JWT_SECRET_KEY is required but not set"
+                  echo "Add it as a secret variable in Azure DevOps Pipeline Variables"
+                  exit 1
+                fi
+                
+                echo "🚀 Starting infrastructure deployment..."
+                
                 az deployment group create \
                   --resource-group $(resourceGroupName) \
                   --template-file infrastructure/main.bicep \
                   --parameters infrastructure/parameters.dev.json \
                   --parameters location=$(location) \
                   --parameters environment=$(environment) \
+                  --parameters jwtSecretKey="$(JWT_SECRET_KEY)" \
+                  --parameters stripeSecretKey="$(STRIPE_SECRET_KEY)" \
+                  --parameters stripeWebhookSecret="$(STRIPE_WEBHOOK_SECRET)" \
+                  --parameters googleClientId="$(GOOGLE_CLIENT_ID)" \
+                  --parameters frontendUrl="$(FRONTEND_URL)" \
                   --name infrastructure-deployment
+                
+                # Verify Static Web App was created
+                STATIC_APP_EXISTS=$(az staticwebapp show \
+                  --name icon-generator-pro \
+                  --resource-group $(resourceGroupName) \
+                  --query "name" -o tsv 2>/dev/null || echo "")
+                
+                if [ -z "$STATIC_APP_EXISTS" ]; then
+                  echo "❌ ERROR: Static Web App was not created!"
+                  exit 1
+                else
+                  echo "✅ Static Web App 'icon-generator-pro' created successfully"
+                fi
 
                 echo "✅ Infrastructure deployment completed"
 

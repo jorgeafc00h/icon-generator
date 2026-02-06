@@ -32,7 +32,7 @@ variables:
   - name: nodeVersion
     value: '18.x'
   - name: 'webAppName'
-    value: 'webapp-icon-generator' # Static web app name
+    value: 'webapi-icon-generator' # Static web app name
   - name: 'environment'
     value: 'prod'
 
@@ -60,10 +60,9 @@ stages:
                   --template-file infrastructure/main.bicep \
                   --parameters infrastructure/parameters.dev.json \
                   --parameters location=$(location) \
-                  --parameters functionAppName=$(functionAppName) \
                   --parameters environment=$(environment) \
                   --name infrastructure-deployment
-                
+
                 echo "✅ Infrastructure deployment completed"
 
   # ============================================
@@ -114,7 +113,7 @@ stages:
 
   # ============================================
   # Stage 3: Build Frontend (React) - DISABLED
-  # Only building Azure Functions for now
+  # Frontend is deployed via Static Web Apps
   # ============================================
   # - stage: BuildFrontend
   #   displayName: 'Build Frontend'

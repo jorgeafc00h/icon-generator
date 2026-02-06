@@ -66,7 +66,7 @@ param tags object = {
 
 // Use static resource names to match existing resources and enable updates
 var storageAccountName = 'sticongen' // Existing storage account with data
-var webAppName = 'webapp-icon-generator-${environment}' // Web app name for ASP.NET Core API
+var webAppName = 'webapi-icon-generator-${environment}' // Web app name for ASP.NET Core API
 var appServicePlanName = 'asp-icon-generator' // Static app service plan name
 var staticWebAppName = 'icon-generator-pro' // Existing Static Web App
 var cosmosAccountName = 'cosmos-icon-generator' // Existing Cosmos DB with free tier
@@ -212,8 +212,8 @@ module appServicePlan './modules/app-service-plan.bicep' = {
     location: location
     tags: tags
     sku: {
-      name: environment == 'prod' ? 'S1' : 'B1' // Basic for dev/staging, Standard for production
-      tier: environment == 'prod' ? 'Standard' : 'Basic'
+      name: 'F1' // Free tier
+      tier: 'Free'
     }
     kind: 'linux'
     reserved: true
@@ -237,7 +237,6 @@ module webApp './modules/web-app.bicep' = {
     jwtIssuer: 'icon-generator-api'
     jwtAudience: 'icon-generator-client'
     jwtExpirationMinutes: 10080 // 7 days
-    runtimeVersion: '10.0'
     allowedOrigins: [
       'http://localhost:5173'
       'http://localhost:3000'

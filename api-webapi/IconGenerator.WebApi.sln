@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IconGenerator.WebApi", "IconGenerator.WebApi\IconGenerator.WebApi.csproj", "{02136AF5-078B-4CA4-908F-B97F77A0D28C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IconGenerator.Tests", "..\Tests\IconGenerator.Tests.csproj", "{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,18 @@ Global
 		{02136AF5-078B-4CA4-908F-B97F77A0D28C}.Release|x64.Build.0 = Release|Any CPU
 		{02136AF5-078B-4CA4-908F-B97F77A0D28C}.Release|x86.ActiveCfg = Release|Any CPU
 		{02136AF5-078B-4CA4-908F-B97F77A0D28C}.Release|x86.Build.0 = Release|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Debug|x64.Build.0 = Debug|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Debug|x86.Build.0 = Debug|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Release|x64.ActiveCfg = Release|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Release|x64.Build.0 = Release|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Release|x86.ActiveCfg = Release|Any CPU
+		{C50F9FC9-A594-4E05-8C74-7389A4D6E2DE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

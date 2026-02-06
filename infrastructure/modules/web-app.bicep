@@ -33,9 +33,6 @@ param jwtAudience string = 'icon-generator-client'
 @description('JWT Expiration in minutes')
 param jwtExpirationMinutes int = 10080
 
-@description('Runtime stack version')
-param runtimeVersion string = '10.0'
-
 @description('Additional app settings')
 param appSettings array = []
 
@@ -61,8 +58,8 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
     httpsOnly: true
     clientAffinityEnabled: false
     siteConfig: {
-      linuxFxVersion: 'DOTNETCORE|${runtimeVersion}'
-      alwaysOn: true // Required for B1/S1 tier
+      linuxFxVersion: 'DOTNETCORE|10'
+      alwaysOn: false // Required for Free tier (F1)
       http20Enabled: true
       appSettings: concat([
         {

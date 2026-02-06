@@ -44,7 +44,7 @@
 
   <ItemGroup>
     <!-- Reference main project -->
-    <ProjectReference Include="../api/IconGenerator.Functions.csproj" />
+    <ProjectReference Include="../api-webapi/IconGenerator.WebApi/IconGenerator.WebApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>

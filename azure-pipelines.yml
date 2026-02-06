@@ -36,7 +36,7 @@ variables:
   - name: nodeVersion
     value: '18.x'
   - name: 'webAppName'
-    value: 'webapi-icon-generator' # Static web app name
+    value: 'webapi-icon-generator-prod' # Must match the name created by Bicep: webapi-icon-generator-${environment}
   - name: 'environment'
     value: 'prod'
 
@@ -189,7 +189,7 @@ stages:
                   inputs:
                     azureSubscription: $(azureSubscription)
                     appType: 'webAppLinux'
-                    appName: '$(webAppName)-$(environment)'
+                    appName: '$(webAppName)'
                     package: '$(Pipeline.Workspace)/webapi/*.zip'
                     runtimeStack: 'DOTNETCORE|10.0'
 

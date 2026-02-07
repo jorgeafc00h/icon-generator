@@ -16,10 +16,11 @@ variables:
     value: '20'
   - name: vmImageName
     value: 'ubuntu-latest'
-  # Add these variables in Azure DevOps Pipeline Variables (mark as secret):
-  # - AZURE_STATIC_WEB_APPS_API_TOKEN
-  # - AZURE_FUNCTIONS_URL
-  # - STRIPE_PUBLIC_KEY
+  # Add these variables in Azure DevOps Pipeline Variables:
+  # - AZURE_STATIC_WEB_APPS_API_TOKEN (secret)
+  # - VITE_API_ENDPOINT (e.g., https://webapi-icon-generator-prod.azurewebsites.net/api)
+  # - VITE_GOOGLE_CLIENT_ID
+  # - VITE_STRIPE_PUBLIC_KEY (secret)
 
 stages:
   - stage: BuildAndDeploy
@@ -55,8 +56,9 @@ stages:
             displayName: 'Build Application'
             workingDirectory: ./web
             env:
-              VITE_API_ENDPOINT: $(AZURE_FUNCTIONS_URL)
-              VITE_STRIPE_PUBLIC_KEY: $(STRIPE_PUBLIC_KEY)
+              VITE_API_ENDPOINT: $(VITE_API_ENDPOINT)
+              VITE_GOOGLE_CLIENT_ID: $(VITE_GOOGLE_CLIENT_ID)
+              VITE_STRIPE_PUBLIC_KEY: $(VITE_STRIPE_PUBLIC_KEY)
 
           - task: AzureStaticWebApp@0
             displayName: 'Deploy to Azure Static Web Apps'

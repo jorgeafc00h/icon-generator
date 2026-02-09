@@ -6,6 +6,7 @@ public interface IDatabaseService
 {
     // User operations
     Task<User?> GetUserAsync(string userId, CancellationToken cancellationToken = default);
+    Task<User?> GetUserByIdAsync(string userId, CancellationToken cancellationToken = default) => GetUserAsync(userId, cancellationToken);
     Task<User?> GetUserByGoogleIdAsync(string googleId, CancellationToken cancellationToken = default);
     Task<User?> GetUserByEmailAsync(string email, CancellationToken cancellationToken = default);
     Task<User> CreateUserAsync(User user, CancellationToken cancellationToken = default);
@@ -25,4 +26,10 @@ public interface IDatabaseService
     // Transaction operations
     Task<Transaction> SaveTransactionAsync(Transaction transaction, CancellationToken cancellationToken = default);
     Task<List<Transaction>> GetUserTransactionsAsync(string userId, int limit = 50, CancellationToken cancellationToken = default);
+
+    // Chat session operations
+    Task<ChatSession> SaveChatSessionAsync(ChatSession chatSession, CancellationToken cancellationToken = default);
+    Task<ChatSession?> GetChatSessionAsync(string sessionId, CancellationToken cancellationToken = default);
+    Task<ChatSession> UpdateChatSessionAsync(ChatSession chatSession, CancellationToken cancellationToken = default);
+    Task<List<ChatSession>> GetUserChatSessionsAsync(string userId, int limit = 50, CancellationToken cancellationToken = default);
 }

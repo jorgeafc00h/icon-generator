@@ -5,6 +5,7 @@ import { Header } from './components/Layout/Header'
 import { Footer } from './components/Layout/Footer'
 import { IconGenerator } from './components/IconGenerator/IconGenerator'
 import { AppResources } from './components/AppResources/AppResources'
+import { ImageGeneration } from './components/ImageGeneration/ImageGeneration'
 import { Dashboard } from './components/Dashboard/Dashboard'
 import { Pricing } from './components/Pricing/Pricing'
 import { Profile } from './components/Profile/Profile'
@@ -19,7 +20,7 @@ const queryClient = new QueryClient({
   },
 })
 
-type Page = 'generator' | 'resources' | 'dashboard' | 'pricing' | 'profile'
+type Page = 'generator' | 'resources' | 'images' | 'dashboard' | 'pricing' | 'profile'
 
 function App() {
   const [currentPage, setCurrentPage] = useState<Page>('generator')
@@ -61,27 +62,41 @@ function App() {
     }
   }
 
-  const handleUserUpdate = () => {
-    // Reload user data
-    loadUserData()
+  const handleUserUpdate = (userData?: User) => {
+    // If user data is provided, use it directly; otherwise reload from API
+    if (userData) {
+      setUser(userData)
+    } else {
+      loadUserData()
+    }
   }
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 relative overflow-hidden">
-        {/* Animated background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
-          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '1s' }}></div>
-          <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
+      {/* Skip to main content link for accessibility */}
+      <a href="#main-content" className="skip-to-main">
+        Skip to main content
+      </a>
+
+      <div className="min-h-screen flex flex-col relative overflow-hidden">
+        {/* Enhanced gradient mesh background */}
+        <div className="fixed inset-0 gradient-mesh bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50"></div>
+
+        {/* Animated floating orbs */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-blue-400 to-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float"></div>
+          <div className="absolute top-1/3 right-1/4 w-[30rem] h-[30rem] bg-gradient-to-br from-purple-400 to-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float-slow"></div>
+          <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-gradient-to-br from-pink-400 to-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-float" style={{ animationDelay: '2s' }}></div>
+          <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-gradient-to-br from-cyan-400 to-cyan-200 rounded-full mix-blend-multiply filter blur-3xl opacity-15 animate-float" style={{ animationDelay: '3s' }}></div>
         </div>
 
         <div className="relative z-10 flex flex-col min-h-screen">
           <Header currentPage={currentPage} onNavigate={setCurrentPage} user={user} />
 
-          <main className="flex-1 animate-slide-in">
+          <main id="main-content" className="flex-1 animate-slide-in">
             {currentPage === 'generator' && <IconGenerator user={user} onUserUpdate={handleUserUpdate} onNavigate={(page) => setCurrentPage(page as Page)} />}
-            {currentPage === 'resources' && <AppResources />}
+            {currentPage === 'resources' && <AppResources user={user} onUserUpdate={handleUserUpdate} />}
+            {currentPage === 'images' && <ImageGeneration user={user} onUserUpdate={handleUserUpdate} />}
             {currentPage === 'dashboard' && <Dashboard user={user} onNavigate={(page) => setCurrentPage(page as Page)} />}
             {currentPage === 'pricing' && <Pricing onNavigate={setCurrentPage} />}
             {currentPage === 'profile' && <Profile onUserUpdate={handleUserUpdate} />}

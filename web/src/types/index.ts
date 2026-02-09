@@ -138,6 +138,27 @@ export interface User {
   auth?: UserAuth
   metadata?: UserMetadata
   preferences?: UserPreferences
+  recentIcons?: RecentIcon[]
+  recentTransactions?: RecentTransaction[]
+}
+
+export interface RecentIcon {
+  id: string
+  imageUrl: string
+  prompt: string
+  style: string
+  colors: string[]
+  quality: string
+  createdAt: string
+}
+
+export interface RecentTransaction {
+  id: string
+  type: string
+  credits: number
+  amountInCents?: number
+  description: string
+  createdAt: string
 }
 
 export interface UserAuth {
@@ -286,4 +307,71 @@ export interface UserData {
   user: User
   icons: IconGeneration[]
   transactions: Transaction[]
+}
+
+// Story Image Generation
+export type ImageStyle =
+  | 'Cartoon'
+  | 'Illustration'
+  | 'Watercolor'
+  | 'DigitalArt'
+  | 'PixelArt'
+  | 'Realistic'
+  | 'Sketch'
+  | 'ThreeD'
+  | 'Anime'
+  | 'Comic'
+  | 'Minimalist'
+  | 'VintagePoster'
+
+export type ImageQuality = 'Preview' | 'Standard' | 'HD' | 'Portrait'
+
+export interface EnhanceImagePromptRequest {
+  userPrompt: string
+  style: ImageStyle
+  characterDescription?: string
+  numberOfScenes: number
+}
+
+export interface EnhanceImagePromptResponse {
+  enhancedPrompt: string
+  scenePrompts: string[]
+  consistencyGuideline: string
+  styleKeywords: string[]
+}
+
+export interface StoryImageGenerationRequest {
+  basePrompt: string
+  style: ImageStyle
+  quality: ImageQuality
+  numberOfImages: number
+  characterDescription?: string
+  sceneDescriptions: string[]
+  useEnhancedPrompts: boolean
+}
+
+export interface StoryImageGenerationResponse {
+  sessionId: string
+  images: GeneratedStoryImage[]
+  creditsUsed: number
+  remainingCredits: number
+  totalCost: number
+}
+
+export interface GeneratedStoryImage {
+  id: string
+  imageUrl: string
+  prompt: string
+  quality: ImageQuality
+  style: ImageStyle
+  sceneNumber: number
+  sceneDescription?: string
+  createdAt: string
+}
+
+export interface ImageStyleInfo {
+  id: ImageStyle
+  name: string
+  description: string
+  example: string
 }

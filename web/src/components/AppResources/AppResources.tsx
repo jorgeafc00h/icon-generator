@@ -1,14 +1,103 @@
 import { useState } from 'react'
 import { appCategories, screenTypeInfo } from '../../data/appCategories'
-import type { AppCategory, Platform, ScreenType } from '../../types'
-import { Smartphone, Monitor, Apple, Box, Check, Sparkles } from 'lucide-react'
+import type { AppCategory, Platform, ScreenType, User } from '../../types'
+import { Smartphone, Monitor, Apple, Box, Check, Sparkles, Loader2 } from 'lucide-react'
+import { ColorPicker } from '../IconGenerator/ColorPicker'
+import { AppResourcesResults } from './AppResourcesResults'
+import { api } from '../../services/api'
+import toast from 'react-hot-toast'
 
-export function AppResources() {
+// Category-specific color palette suggestions
+const categoryColorPalettes: Record<AppCategory, Array<{ name: string; colors: string[] }>> = {
+  'ecommerce': [
+    { name: 'Trust Blue', colors: ['#0066FF', '#00D4FF'] },
+    { name: 'Vibrant Sale', colors: ['#FF6B6B', '#FFE66D'] },
+    { name: 'Luxury Gold', colors: ['#D4A574', '#8B7355'] },
+    { name: 'Fresh Green', colors: ['#00B894', '#55EFC4'] },
+  ],
+  'healthcare': [
+    { name: 'Medical Blue', colors: ['#4A90E2', '#50C878'] },
+    { name: 'Calm Teal', colors: ['#00CEC9', '#81ECEC'] },
+    { name: 'Trust Green', colors: ['#00B894', '#74B9FF'] },
+    { name: 'Professional Navy', colors: ['#2D3E50', '#3498DB'] },
+  ],
+  'finance': [
+    { name: 'Professional Blue', colors: ['#0066FF', '#004C99'] },
+    { name: 'Wealth Gold', colors: ['#D4AF37', '#FFD700'] },
+    { name: 'Trust Navy', colors: ['#1E3A8A', '#3B82F6'] },
+    { name: 'Growth Green', colors: ['#059669', '#10B981'] },
+  ],
+  'social': [
+    { name: 'Playful Purple', colors: ['#8B5CF6', '#EC4899'] },
+    { name: 'Vibrant Gradient', colors: ['#FF3CAC', '#784BA0', '#2B86C5'] },
+    { name: 'Warm Sunset', colors: ['#FF6B9D', '#FFE66D'] },
+    { name: 'Cool Ocean', colors: ['#667EEA', '#764BA2'] },
+  ],
+  'fitness': [
+    { name: 'Energy Red', colors: ['#EF4444', '#F97316'] },
+    { name: 'Vitality Green', colors: ['#10B981', '#14B8A6'] },
+    { name: 'Power Purple', colors: ['#8B5CF6', '#A855F7'] },
+    { name: 'Active Orange', colors: ['#F59E0B', '#FB923C'] },
+  ],
+  'education': [
+    { name: 'Knowledge Blue', colors: ['#3B82F6', '#60A5FA'] },
+    { name: 'Growth Green', colors: ['#22C55E', '#4ADE80'] },
+    { name: 'Creative Purple', colors: ['#A78BFA', '#C4B5FD'] },
+    { name: 'Friendly Yellow', colors: ['#FBBF24', '#FCD34D'] },
+  ],
+  'productivity': [
+    { name: 'Focus Blue', colors: ['#2563EB', '#3B82F6'] },
+    { name: 'Calm Gray', colors: ['#6B7280', '#9CA3AF'] },
+    { name: 'Efficient Teal', colors: ['#14B8A6', '#2DD4BF'] },
+    { name: 'Balanced Purple', colors: ['#7C3AED', '#8B5CF6'] },
+  ],
+  'food': [
+    { name: 'Appetizing Red', colors: ['#DC2626', '#EF4444'] },
+    { name: 'Fresh Green', colors: ['#16A34A', '#22C55E'] },
+    { name: 'Warm Orange', colors: ['#EA580C', '#F97316'] },
+    { name: 'Gourmet Brown', colors: ['#78350F', '#92400E'] },
+  ],
+  'travel': [
+    { name: 'Sky Blue', colors: ['#0EA5E9', '#38BDF8'] },
+    { name: 'Adventure Orange', colors: ['#F97316', '#FB923C'] },
+    { name: 'Tropical Green', colors: ['#059669', '#10B981'] },
+    { name: 'Sunset Gradient', colors: ['#FF6B6B', '#FFE66D'] },
+  ],
+  'music': [
+    { name: 'Rhythm Purple', colors: ['#7C3AED', '#A78BFA'] },
+    { name: 'Beat Pink', colors: ['#DB2777', '#EC4899'] },
+    { name: 'Sound Wave', colors: ['#0EA5E9', '#8B5CF6'] },
+    { name: 'Neon Vibe', colors: ['#F59E0B', '#EC4899', '#8B5CF6'] },
+  ],
+  'custom': [
+    { name: 'Professional Blue', colors: ['#3B82F6', '#60A5FA'] },
+    { name: 'Creative Purple', colors: ['#8B5CF6', '#A855F7'] },
+    { name: 'Modern Gradient', colors: ['#06B6D4', '#8B5CF6'] },
+    { name: 'Classic Gray', colors: ['#6B7280', '#9CA3AF'] },
+  ],
+}
+
+function getCategoryColorSuggestions(category: AppCategory) {
+  return categoryColorPalettes[category] || categoryColorPalettes.ecommerce
+}
+
+interface AppResourcesProps {
+  user?: User | null
+  onUserUpdate?: () => void
+}
+
+export function AppResources({ user, onUserUpdate }: AppResourcesProps) {
   const [selectedCategory, setSelectedCategory] = useState<AppCategory | null>(null)
   const [selectedScreens, setSelectedScreens] = useState<ScreenType[]>([])
   const [selectedPlatforms, setSelectedPlatforms] = useState<Platform[]>(['ios', 'android'])
   const [appName, setAppName] = useState('')
   const [brandColors, setBrandColors] = useState(['#4A90E2', '#50C878'])
+
+  // Generation state
+  const [isGenerating, setIsGenerating] = useState(false)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [generatedScreens, setGeneratedScreens] = useState<any[]>([])
+  const [showResults, setShowResults] = useState(false)
 
   const categoryInfo = selectedCategory ? appCategories.find(c => c.id === selectedCategory) : null
 
@@ -24,12 +113,92 @@ export function AppResources() {
     )
   }
 
+  const handleGenerate = async () => {
+    if (!appName.trim()) {
+      toast.error('Please enter an app name')
+      return
+    }
+
+    if (!user) {
+      toast.error('Please sign in to generate app resources')
+      return
+    }
+
+    // Check credits
+    const creditsNeeded = selectedScreens.length
+    if (!user.isUnlimited && user.credits < creditsNeeded) {
+      toast.error(`Not enough credits. You need ${creditsNeeded} credits but have ${user.credits}`)
+      return
+    }
+
+    setIsGenerating(true)
+
+    try {
+      const request = {
+        platforms: selectedPlatforms.map(p => p.charAt(0).toUpperCase() + p.slice(1)),
+        options: {
+          screenTypes: selectedScreens,
+          appName: appName.trim(),
+          appCategory: selectedCategory || 'app',
+          brandPrimaryColor: brandColors[0],
+          brandSecondaryColor: brandColors[1] || brandColors[0],
+          targetPlatform: selectedPlatforms[0].charAt(0).toUpperCase() + selectedPlatforms[0].slice(1)
+        }
+      }
+
+      const response = await api.generateAppResourcesV2(request)
+
+      // Update state with results
+      setSessionId(response.sessionId)
+      setGeneratedScreens(response.screens || [])
+      setShowResults(true)
+
+      // Update user credits
+      if (onUserUpdate) {
+        onUserUpdate()
+      }
+
+      toast.success(`Generated ${response.screens?.length || 0} screens!`, {
+        icon: '🎉',
+        duration: 4000
+      })
+
+      // Scroll to results
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      }, 100)
+    } catch (error: any) {
+      console.error('Generation error:', error)
+
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to generate app resources'
+      toast.error(errorMessage, {
+        duration: 5000
+      })
+    } finally {
+      setIsGenerating(false)
+    }
+  }
+
   const platforms = [
     { id: 'ios' as Platform, name: 'iOS', icon: Apple, color: 'from-gray-800 to-gray-900', bgColor: 'bg-gray-900' },
     { id: 'android' as Platform, name: 'Android', icon: Smartphone, color: 'from-green-500 to-green-600', bgColor: 'bg-green-600' },
     { id: 'web' as Platform, name: 'Web/PWA', icon: Monitor, color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-600' },
     { id: 'macos' as Platform, name: 'macOS', icon: Box, color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-600' },
   ]
+
+  // Show results view if generation is complete
+  if (showResults && sessionId && generatedScreens.length > 0) {
+    return (
+      <AppResourcesResults
+        sessionId={sessionId}
+        screens={generatedScreens}
+        appName={appName}
+        appCategory={selectedCategory || 'app'}
+        user={user}
+        onUserUpdate={onUserUpdate}
+      />
+    )
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-12 max-w-7xl">
@@ -158,7 +327,8 @@ export function AppResources() {
           {/* App Name & Colors */}
           <div className="mb-8">
             <h3 className="font-bold text-lg mb-4 text-gray-900">App Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
+              {/* App Name */}
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   App Name
@@ -167,37 +337,55 @@ export function AppResources() {
                   type="text"
                   value={appName}
                   onChange={(e) => setAppName(e.target.value)}
-                  placeholder="e.g., ShopHub, HealthCare Pro"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500 focus:ring-opacity-30 focus:border-blue-500 transition-all"
+                  placeholder="e.g., ShopHub, HealthCare Pro, FitTracker"
+                  className="input-premium w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:ring-4 focus:ring-blue-500 focus:ring-opacity-30 focus:border-blue-500 transition-all text-base font-medium"
                 />
               </div>
+
+              {/* Brand Colors - Enhanced with ColorPicker */}
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-3">
                   Brand Colors
                 </label>
-                <div className="flex gap-3">
-                  {brandColors.map((color, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={color}
-                        onChange={(e) => {
-                          const newColors = [...brandColors]
-                          newColors[index] = e.target.value
-                          setBrandColors(newColors)
-                        }}
-                        className="w-14 h-14 rounded-xl cursor-pointer border-4 border-white shadow-lg hover:scale-110 transition-transform"
-                      />
+                <div className="card-premium p-6 rounded-2xl">
+                  {/* Category-specific suggestions */}
+                  {selectedCategory && (
+                    <div className="mb-5 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+                      <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                        <span className="text-lg">{categoryInfo?.icon}</span>
+                        Recommended for {categoryInfo?.name}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {getCategoryColorSuggestions(selectedCategory).map((suggestion, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setBrandColors(suggestion.colors)}
+                            className="group px-3 py-2 bg-white rounded-lg border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all"
+                            title={`Apply ${suggestion.name} palette`}
+                          >
+                            <div className="flex gap-1 mb-1">
+                              {suggestion.colors.map((color, i) => (
+                                <div
+                                  key={i}
+                                  className="w-6 h-6 rounded"
+                                  style={{ backgroundColor: color }}
+                                />
+                              ))}
+                            </div>
+                            <p className="text-xs font-medium text-gray-600 group-hover:text-blue-600">
+                              {suggestion.name}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                  {brandColors.length < 3 && (
-                    <button
-                      onClick={() => setBrandColors([...brandColors, '#000000'])}
-                      className="w-14 h-14 border-2 border-dashed border-gray-300 rounded-xl text-gray-400 hover:border-blue-500 hover:text-blue-500 hover:scale-110 transition-all font-bold text-xl"
-                    >
-                      +
-                    </button>
                   )}
+
+                  <ColorPicker colors={brandColors} onChange={setBrandColors} />
+                  <p className="mt-4 text-xs text-gray-500 flex items-center gap-2">
+                    <Sparkles className="w-3 h-3" />
+                    Choose colors that match your brand identity. Click a color to customize or select a preset palette.
+                  </p>
                 </div>
               </div>
             </div>
@@ -306,10 +494,21 @@ export function AppResources() {
               </p>
             </div>
             <button
-              className="w-full md:w-auto bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-50 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 shadow-2xl"
+              onClick={handleGenerate}
+              disabled={isGenerating || !appName.trim()}
+              className="w-full md:w-auto bg-white text-blue-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-50 hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2 shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              <Sparkles size={24} />
-              Generate App Mockups
+              {isGenerating ? (
+                <>
+                  <Loader2 size={24} className="animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles size={24} />
+                  Generate App Mockups
+                </>
+              )}
             </button>
           </div>
         </div>

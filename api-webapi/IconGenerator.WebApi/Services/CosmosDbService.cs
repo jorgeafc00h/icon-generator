@@ -15,6 +15,7 @@ public class CosmosDbService : IDatabaseService
     private readonly Container _iconsContainer;
     private readonly Container _assetsContainer;
     private readonly Container _transactionsContainer;
+    private readonly Container _chatSessionsContainer;
     private readonly ILogger<CosmosDbService> _logger;
 
     public CosmosDbService(IOptions<DatabaseOptions> options, ILogger<CosmosDbService> logger)
@@ -62,6 +63,7 @@ public class CosmosDbService : IDatabaseService
             _iconsContainer = database.GetContainer("Icons");
             _assetsContainer = database.GetContainer("Assets");
             _transactionsContainer = database.GetContainer("Transactions");
+            _chatSessionsContainer = database.GetContainer("ChatSessions");
 
             _logger.LogInformation("Cosmos DB client initialized successfully");
         }
@@ -281,6 +283,66 @@ public class CosmosDbService : IDatabaseService
 
         var results = new List<Transaction>();
         var iterator = _transactionsContainer.GetItemQueryIterator<Transaction>(query);
+
+        while (iterator.HasMoreResults)
+        {
+            var response = await iterator.ReadNextAsync(cancellationToken);
+            results.AddRange(response);
+        }
+
+        return results;
+    }
+
+    // Chat session operations
+    public async Task<ChatSession> SaveChatSessionAsync(ChatSession chatSession, CancellationToken cancellationToken = default)
+    {
+        var response = await _chatSessionsContainer.CreateItemAsync(
+            chatSession,
+            new PartitionKey(chatSession.UserId),
+            cancellationToken: cancellationToken);
+
+        return response.Resource;
+    }
+
+    public async Task<ChatSession?> GetChatSessionAsync(string sessionId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var query = new QueryDefinition("SELECT * FROM c WHERE c.id = @sessionId")
+                .WithParameter("@sessionId", sessionId);
+
+            var iterator = _chatSessionsContainer.GetItemQueryIterator<ChatSession>(query);
+            var response = await iterator.ReadNextAsync(cancellationToken);
+
+            return response.FirstOrDefault();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<ChatSession> UpdateChatSessionAsync(ChatSession chatSession, CancellationToken cancellationToken = default)
+    {
+        chatSession.UpdatedAt = DateTime.UtcNow;
+
+        var response = await _chatSessionsContainer.UpsertItemAsync(
+            chatSession,
+            new PartitionKey(chatSession.UserId),
+            cancellationToken: cancellationToken);
+
+        return response.Resource;
+    }
+
+    public async Task<List<ChatSession>> GetUserChatSessionsAsync(string userId, int limit = 50, CancellationToken cancellationToken = default)
+    {
+        var query = new QueryDefinition(
+            "SELECT * FROM c WHERE c.userId = @userId ORDER BY c.updatedAt DESC OFFSET 0 LIMIT @limit")
+            .WithParameter("@userId", userId)
+            .WithParameter("@limit", limit);
+
+        var results = new List<ChatSession>();
+        var iterator = _chatSessionsContainer.GetItemQueryIterator<ChatSession>(query);
 
         while (iterator.HasMoreResults)
         {

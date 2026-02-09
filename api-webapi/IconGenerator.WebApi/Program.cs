@@ -31,8 +31,13 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Add Controllers
-builder.Services.AddControllers();
+// Add Controllers with JSON options for enum string handling
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Allow enums to be sent as strings instead of integers
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 // Configure JWT Authentication
 var jwtOptions = configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>();
@@ -94,6 +99,7 @@ builder.Services.Configure<StripeOptions>(configuration.GetSection("Stripe"));
 
 // Register Services
 builder.Services.AddSingleton<PromptEngineeringService>();
+builder.Services.AddSingleton<UIPromptEngineeringService>();
 builder.Services.AddSingleton<IAIService, AIService>();
 builder.Services.AddSingleton<IStorageService, StorageService>();
 builder.Services.AddSingleton<IImageService, ImageService>();

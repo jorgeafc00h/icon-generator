@@ -25,7 +25,7 @@ public class ClinicManagementAppGenerationTests
 {
     private readonly TestFixture _fixture;
     private readonly ITestOutputHelper _output;
-    private readonly AIService _aiService;
+    private readonly IAIService _aiService;
     private readonly IStorageService _storageService;
 
     // Test user for clinic app generation
@@ -38,7 +38,7 @@ public class ClinicManagementAppGenerationTests
     {
         _fixture = fixture;
         _output = output;
-        _aiService = _fixture.ServiceProvider.GetRequiredService<AIService>();
+        _aiService = _fixture.ServiceProvider.GetRequiredService<IAIService>();
         _storageService = _fixture.ServiceProvider.GetRequiredService<IStorageService>();
     }
 
@@ -166,31 +166,22 @@ public class ClinicManagementAppGenerationTests
     {
         _output.WriteLine($"\n🔐 Generating Login Screen (Google & Apple Sign-In)...");
 
-        var loginRequest = new IconGenerationRequest
+        var request = new AppResourcesGenerationRequest
         {
-            Keywords = $@"
-                Professional login screen for {appName} medical app:
-                - {appName} logo and tagline at top
-                - 'Welcome back, Doctor' greeting
-                - Email and password input fields with medical-themed icons
-                - Primary 'Sign In' button in blue ({brandColors[0]})
-                - Divider with 'OR' text
-                - Social login section:
-                  * 'Sign in with Google' button (white with Google logo)
-                  * 'Sign in with Apple' button (black with Apple logo)
-                - Both social buttons side-by-side or stacked
-                - 'Forgot Password?' link in small text
-                - Security badge/icon indicating HIPAA compliance
-                - Clean white background with subtle medical cross pattern
-                - Professional medical UI design
-                - Mobile interface (375x812px)
-            ",
-            Style = "Modern",
-            Colors = brandColors
+            Platforms = new List<string> { "iOS" },
+            Options = new AppResourcesOptions
+            {
+                ScreenTypes = new List<ScreenType> { ScreenType.Login },
+                AppName = appName,
+                AppCategory = "healthcare",
+                BrandPrimaryColor = brandColors[0],
+                BrandSecondaryColor = brandColors[1],
+                TargetPlatform = Platform.iOS
+            }
         };
 
         // Enhance, generate, save
-        var enhancedPrompt = await _aiService.EnhancePromptAsync(loginRequest);
+        var enhancedPrompt = await _aiService.EnhanceUIPromptAsync(request);
         _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
         var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
@@ -226,41 +217,21 @@ public class ClinicManagementAppGenerationTests
     {
         _output.WriteLine($"\n🏥 Generating Home Dashboard...");
 
-        var homeRequest = new IconGenerationRequest
+        var request = new AppResourcesGenerationRequest
         {
-            Keywords = $@"
-                {appName} home dashboard for doctors:
-                - Top header with doctor profile photo and 'Good morning, Dr. Smith'
-                - Sync status indicator showing 'Synced with Google Calendar ✓' in green
-                - Today's summary cards:
-                  * Total appointments today (number with calendar icon)
-                  * Patients waiting (number with user icon)
-                  * Pending reports (number with document icon)
-                - Quick actions buttons:
-                  * 'New Appointment' (blue)
-                  * 'Add Patient' (green)
-                  * 'View Calendar' (with Google Calendar logo)
-                - Upcoming appointments list (next 3-4 appointments):
-                  * Patient photo/avatar
-                  * Patient name and age
-                  * Appointment time
-                  * Appointment type (Checkup, Follow-up, etc.)
-                  * Status badge
-                - Bottom navigation bar:
-                  * Home (active)
-                  * Patients
-                  * Appointments
-                  * Calendar
-                  * More
-                - Clean medical professional design
-                - Use cards with subtle shadows
-                - Mobile interface (375x812px)
-            ",
-            Style = "Modern",
-            Colors = brandColors
+            Platforms = new List<string> { "iOS" },
+            Options = new AppResourcesOptions
+            {
+                ScreenTypes = new List<ScreenType> { ScreenType.Dashboard },
+                AppName = appName,
+                AppCategory = "healthcare",
+                BrandPrimaryColor = brandColors[0],
+                BrandSecondaryColor = brandColors[1],
+                TargetPlatform = Platform.iOS
+            }
         };
 
-        var enhancedPrompt = await _aiService.EnhancePromptAsync(homeRequest);
+        var enhancedPrompt = await _aiService.EnhanceUIPromptAsync(request);
         _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
         var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
@@ -296,35 +267,21 @@ public class ClinicManagementAppGenerationTests
     {
         _output.WriteLine($"\n👥 Generating Patients List Screen...");
 
-        var patientsRequest = new IconGenerationRequest
+        var request = new AppResourcesGenerationRequest
         {
-            Keywords = $@"
-                Patients list screen for {appName}:
-                - Search bar at top with 'Search patients...' placeholder
-                - Filter/sort buttons (All, Recent, A-Z)
-                - Patient cards in scrollable list:
-                  * Patient photo/avatar (circular)
-                  * Patient full name
-                  * Age and gender icons
-                  * Last visit date
-                  * Condition/diagnosis tag (if applicable)
-                  * Right arrow for details
-                  * Color-coded status dot (green=healthy, yellow=follow-up, red=urgent)
-                - Floating action button '+' to add new patient (bottom right)
-                - Quick stats at top:
-                  * Total patients
-                  * Appointments today
-                  * Critical cases
-                - Pull-to-refresh indicator
-                - Alphabetical section headers (A, B, C, etc.)
-                - Clean medical records interface
-                - Mobile design (375x812px)
-            ",
-            Style = "Modern",
-            Colors = brandColors
+            Platforms = new List<string> { "iOS" },
+            Options = new AppResourcesOptions
+            {
+                ScreenTypes = new List<ScreenType> { ScreenType.PatientsList },
+                AppName = appName,
+                AppCategory = "healthcare",
+                BrandPrimaryColor = brandColors[0],
+                BrandSecondaryColor = brandColors[1],
+                TargetPlatform = Platform.iOS
+            }
         };
 
-        var enhancedPrompt = await _aiService.EnhancePromptAsync(patientsRequest);
+        var enhancedPrompt = await _aiService.EnhanceUIPromptAsync(request);
         _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
         var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
@@ -360,45 +317,21 @@ public class ClinicManagementAppGenerationTests
     {
         _output.WriteLine($"\n📋 Generating Patient History/Medical Records Screen...");
 
-        var historyRequest = new IconGenerationRequest
+        var request = new AppResourcesGenerationRequest
         {
-            Keywords = $@"
-                Patient medical history screen for {appName}:
-                - Header with patient info:
-                  * Large patient photo
-                  * Name, age, blood type
-                  * Contact info
-                  * Emergency contact
-                - Tabs for different sections:
-                  * Overview
-                  * Visits
-                  * Prescriptions
-                  * Lab Results
-                  * Documents
-                - Timeline view of medical history:
-                  * Visit cards showing date, reason, diagnosis
-                  * Prescription entries with medications
-                  * Lab results with downloadable reports
-                  * Doctor notes and observations
-                - Each entry has:
-                  * Date and time
-                  * Icon indicating type (visit, prescription, lab)
-                  * Summary text
-                  * 'View Details' button
-                - Vital signs summary (latest):
-                  * Blood pressure
-                  * Heart rate
-                  * Temperature
-                  * Weight
-                - Floating action button to add new entry
-                - Professional medical records UI
-                - Mobile interface (375x812px)
-            ",
-            Style = "Modern",
-            Colors = brandColors
+            Platforms = new List<string> { "iOS" },
+            Options = new AppResourcesOptions
+            {
+                ScreenTypes = new List<ScreenType> { ScreenType.PatientDetail },
+                AppName = appName,
+                AppCategory = "healthcare",
+                BrandPrimaryColor = brandColors[0],
+                BrandSecondaryColor = brandColors[1],
+                TargetPlatform = Platform.iOS
+            }
         };
 
-        var enhancedPrompt = await _aiService.EnhancePromptAsync(historyRequest);
+        var enhancedPrompt = await _aiService.EnhanceUIPromptAsync(request);
         _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
         var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
@@ -434,42 +367,21 @@ public class ClinicManagementAppGenerationTests
     {
         _output.WriteLine($"\n📅 Generating Appointment Management Screen...");
 
-        var appointmentRequest = new IconGenerationRequest
+        var request = new AppResourcesGenerationRequest
         {
-            Keywords = $@"
-                Appointment management screen for {appName} with Google Calendar integration:
-                - Header with 'Appointments' title and Google Calendar icon
-                - Sync status banner:
-                  * 'Synced with Google Calendar' with checkmark (if synced)
-                  * 'Tap to sync' button (if not synced)
-                  * Last sync time
-                - Calendar view switcher: Day/Week/Month
-                - Monthly calendar widget showing:
-                  * Current month
-                  * Dots on dates with appointments
-                  * Color coding (blue=scheduled, green=completed, red=cancelled)
-                - Appointments list for selected date:
-                  * Time slots (8:00 AM, 9:00 AM, etc.)
-                  * Patient name and photo
-                  * Appointment type
-                  * Duration
-                  * Video call icon (if telemedicine)
-                  * Status badge
-                  * Actions: Reschedule, Cancel, Start
-                - Floating '+' button to create new appointment
-                - Filter buttons: All, Confirmed, Pending, Cancelled
-                - Integration indicators:
-                  * Google Calendar logo badge
-                  * Sync animation when updating
-                  * 'Auto-sync enabled' toggle
-                - Professional calendar UI
-                - Mobile interface (375x812px)
-            ",
-            Style = "Modern",
-            Colors = brandColors
+            Platforms = new List<string> { "iOS" },
+            Options = new AppResourcesOptions
+            {
+                ScreenTypes = new List<ScreenType> { ScreenType.Appointments },
+                AppName = appName,
+                AppCategory = "healthcare",
+                BrandPrimaryColor = brandColors[0],
+                BrandSecondaryColor = brandColors[1],
+                TargetPlatform = Platform.iOS
+            }
         };
 
-        var enhancedPrompt = await _aiService.EnhancePromptAsync(appointmentRequest);
+        var enhancedPrompt = await _aiService.EnhanceUIPromptAsync(request);
         _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
         var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");
@@ -505,45 +417,21 @@ public class ClinicManagementAppGenerationTests
     {
         _output.WriteLine($"\n🔄 Generating Google Calendar Sync Settings Screen...");
 
-        var syncRequest = new IconGenerationRequest
+        var request = new AppResourcesGenerationRequest
         {
-            Keywords = $@"
-                Google Calendar sync settings screen for {appName}:
-                - Header with 'Calendar Sync' title
-                - Google Calendar logo and 'Connected' status
-                - Connected account info:
-                  * Google account email
-                  * Profile photo
-                  * 'Change Account' button
-                - Sync settings cards:
-                  * Auto-sync toggle (ON/OFF)
-                  * Sync frequency dropdown (Real-time, Every 5 min, Hourly)
-                  * Sync direction:
-                    - {appName} → Google Calendar
-                    - Google Calendar → {appName}
-                    - Bidirectional (default)
-                  * Calendar to sync dropdown (Primary, Work, Personal)
-                - Sync status section:
-                  * Last successful sync time
-                  * 'Sync Now' button (blue)
-                  * Sync activity log (last 5 syncs)
-                - Notifications settings:
-                  * Push notifications for new appointments
-                  * Email reminders
-                  * SMS reminders
-                - Conflict resolution:
-                  * '{appName} takes priority' radio
-                  * 'Google Calendar takes priority' radio
-                  * 'Ask me' radio (default)
-                - 'Disconnect' button at bottom (red, with warning)
-                - Loading indicator when syncing
-                - Mobile interface (375x812px)
-            ",
-            Style = "Modern",
-            Colors = brandColors
+            Platforms = new List<string> { "iOS" },
+            Options = new AppResourcesOptions
+            {
+                ScreenTypes = new List<ScreenType> { ScreenType.CalendarSync },
+                AppName = appName,
+                AppCategory = "healthcare",
+                BrandPrimaryColor = brandColors[0],
+                BrandSecondaryColor = brandColors[1],
+                TargetPlatform = Platform.iOS
+            }
         };
 
-        var enhancedPrompt = await _aiService.EnhancePromptAsync(syncRequest);
+        var enhancedPrompt = await _aiService.EnhanceUIPromptAsync(request);
         _output.WriteLine($"  ✓ Prompt enhanced ({enhancedPrompt.Length} chars)");
 
         var imageUrl = await _aiService.GenerateIconAsync(enhancedPrompt, "standard");

@@ -48,7 +48,7 @@ class ApiClient {
   // Icon Generation
   async generateIcon(request: IconGenerationRequest): Promise<IconGenerationResponse> {
     const { data } = await this.client.post<IconGenerationResponse>(
-      '/generate-icon',
+      '/icons/generate',
       request
     )
     return data
@@ -56,7 +56,7 @@ class ApiClient {
 
   async enhancePrompt(request: Pick<IconGenerationRequest, 'keywords' | 'style' | 'colors'>): Promise<string> {
     const { data } = await this.client.post<{ enhancedPrompt: string }>(
-      '/enhance-prompt',
+      '/icons/enhance-prompt',
       request
     )
     return data.enhancedPrompt
@@ -65,32 +65,40 @@ class ApiClient {
   // App Resources
   async generateAppResources(request: AppResourcesRequest): Promise<AppResourcesResponse> {
     const { data } = await this.client.post<AppResourcesResponse>(
-      '/generate-app-resources',
+      '/resources/generate',
       request
     )
     return data
   }
 
   async analyzeIcon(iconId: string): Promise<any> {
-    const { data } = await this.client.get(`/analyze-icon/${iconId}`)
+    const { data } = await this.client.get(`/icons/${iconId}/analyze`)
     return data
   }
 
   // User Management
   async getUser(): Promise<User> {
-    const { data } = await this.client.get<User>('/user')
+    const userId = localStorage.getItem('userId')
+    if (!userId) {
+      throw new Error('User ID not found')
+    }
+    const { data } = await this.client.get<User>(`/users/${userId}`)
     return data
   }
 
   async getUserIcons(): Promise<IconGenerationResponse[]> {
-    const { data } = await this.client.get<IconGenerationResponse[]>('/user/icons')
+    const userId = localStorage.getItem('userId')
+    if (!userId) {
+      throw new Error('User ID not found')
+    }
+    const { data } = await this.client.get<IconGenerationResponse[]>(`/users/${userId}/icons`)
     return data
   }
 
   // Payments
   async createCheckoutSession(planId: string): Promise<{ url: string }> {
     const { data } = await this.client.post<{ url: string }>(
-      '/create-checkout-session',
+      '/payments/checkout',
       { planId }
     )
     return data
@@ -101,6 +109,49 @@ class ApiClient {
     const { data } = await this.client.get(url, {
       responseType: 'blob',
     })
+    return data
+  }
+
+  // App Resources Generation
+  async generateAppResourcesV2(request: any): Promise<any> {
+    const { data } = await this.client.post('/app-resources/generate', request)
+    return data
+  }
+
+  // Chat Interface for Iterative Screen Generation
+  async chatGenerateScreen(request: { sessionId: string; message: string }): Promise<any> {
+    const { data} = await this.client.post('/app-resources/chat', request)
+    return data
+  }
+
+  async getChatSession(sessionId: string): Promise<any> {
+    const { data } = await this.client.get(`/app-resources/sessions/${sessionId}`)
+    return data
+  }
+
+  async getUserChatSessions(): Promise<any[]> {
+    const { data } = await this.client.get('/app-resources/sessions')
+    return data
+  }
+
+  // Story Image Generation
+  async getImageStyles(): Promise<any[]> {
+    const { data } = await this.client.get('/images/styles')
+    return data
+  }
+
+  async enhanceImagePrompt(request: any): Promise<any> {
+    const { data } = await this.client.post('/images/enhance-prompt', request)
+    return data
+  }
+
+  async generatePreviewImages(request: any): Promise<any> {
+    const { data } = await this.client.post('/images/generate-preview', request)
+    return data
+  }
+
+  async generateFinalImages(request: any): Promise<any> {
+    const { data } = await this.client.post('/images/generate-final', request)
     return data
   }
 }

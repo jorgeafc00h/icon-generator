@@ -17,7 +17,7 @@ import { GoogleSignIn } from './GoogleSignIn'
 import { PurchaseCreditsModal } from './PurchaseCreditsModal'
 
 interface ProfileProps {
-  onUserUpdate?: () => void
+  onUserUpdate?: (user?: any) => void
 }
 
 export function Profile({ onUserUpdate }: ProfileProps) {
@@ -107,7 +107,9 @@ export function Profile({ onUserUpdate }: ProfileProps) {
       console.log('🔷 User data received:', {
         email: userData.email,
         credits: userData.credits,
-        hasName: !!userData.name
+        hasName: !!userData.name,
+        profilePictureUrl: userData.profilePictureUrl,
+        hasProfilePicture: !!userData.profilePictureUrl
       })
       setUser(userData)
     } catch (error) {
@@ -121,34 +123,37 @@ export function Profile({ onUserUpdate }: ProfileProps) {
   const handleGoogleSignIn = (authResponse: any) => {
     console.log('Sign in successful:', authResponse)
 
-    // Store all user data in localStorage
-    localStorage.setItem('accessToken', authResponse.AccessToken)
-    localStorage.setItem('userId', authResponse.UserId)
-    localStorage.setItem('userEmail', authResponse.Email)
-    localStorage.setItem('userName', authResponse.Name || '')
-    localStorage.setItem('userPicture', authResponse.ProfilePictureUrl || '')
+    // Store all user data in localStorage (using camelCase to match API response)
+    localStorage.setItem('accessToken', authResponse.accessToken)
+    localStorage.setItem('userId', authResponse.userId)
+    localStorage.setItem('userEmail', authResponse.email)
+    localStorage.setItem('userName', authResponse.name || '')
+    localStorage.setItem('userPicture', authResponse.profilePictureUrl || '')
 
-    setUser({
-      id: authResponse.UserId,
-      email: authResponse.Email,
-      name: authResponse.Name,
-      profilePictureUrl: authResponse.ProfilePictureUrl,
-      credits: authResponse.Credits,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      metadata: {
+    const userData = {
+      id: authResponse.userId,
+      email: authResponse.email,
+      name: authResponse.name,
+      profilePictureUrl: authResponse.profilePictureUrl,
+      credits: authResponse.credits,
+      isUnlimited: authResponse.isUnlimited || false,
+      createdAt: authResponse.createdAt || new Date().toISOString(),
+      updatedAt: authResponse.updatedAt || new Date().toISOString(),
+      metadata: authResponse.metadata || {
         totalIconsGenerated: 0,
         totalCreditsPurchased: 0,
         totalCreditsSpent: 0
       },
-      preferences: {
+      preferences: authResponse.preferences || {
         emailNotifications: true
       }
-    })
+    }
 
-    // Notify parent component to reload user data
+    setUser(userData)
+
+    // Notify parent component with user data to avoid unnecessary API call
     if (onUserUpdate) {
-      onUserUpdate()
+      onUserUpdate(userData)
     }
   }
 
@@ -286,11 +291,22 @@ export function Profile({ onUserUpdate }: ProfileProps) {
             {/* User Info */}
             <div className="flex items-center gap-4">
               {user.profilePictureUrl ? (
-                <img
-                  src={user.profilePictureUrl}
-                  alt={user.name || user.email}
-                  className="w-20 h-20 rounded-full ring-4 ring-blue-100"
-                />
+                <>
+                  <img
+                    src={user.profilePictureUrl}
+                    alt={user.name || user.email}
+                    className="w-20 h-20 rounded-full ring-4 ring-blue-100"
+                    onError={(e) => {
+                      console.error('Failed to load profile picture:', user.profilePictureUrl)
+                      e.currentTarget.style.display = 'none'
+                      e.currentTarget.parentElement?.querySelector('.fallback-avatar')?.classList.remove('hidden')
+                    }}
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="fallback-avatar hidden w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold ring-4 ring-blue-100">
+                    {((user.name || user.email || 'U').charAt(0).toUpperCase())}
+                  </div>
+                </>
               ) : (
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
                   {((user.name || user.email || 'U').charAt(0).toUpperCase())}
@@ -411,22 +427,106 @@ export function Profile({ onUserUpdate }: ProfileProps) {
           <div className="p-8">
             {activeTab === 'overview' && (
               <div>
-                <h2 className="text-2xl font-bold mb-4">Recent Activity</h2>
-                <div className="text-center py-12 text-gray-400">
-                  <History size={48} className="mx-auto mb-4 opacity-50" />
-                  <p>No recent activity</p>
-                  <p className="text-sm mt-2">Start creating icons to see your history here</p>
-                </div>
+                <h2 className="text-2xl font-bold mb-4">Recent Icons</h2>
+                {user.recentIcons && user.recentIcons.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {user.recentIcons.map((icon) => (
+                      <div key={icon.id} className="group relative aspect-square rounded-xl overflow-hidden border-2 border-gray-200 hover:border-blue-400 transition-all hover:shadow-lg">
+                        <img
+                          src={icon.imageUrl}
+                          alt={icon.prompt}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext x="50%25" y="50%25" text-anchor="middle" dy=".3em" fill="%23999"%3EIcon%3C/text%3E%3C/svg%3E'
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute top-2 right-2">
+                            <a
+                              href={icon.imageUrl}
+                              download={`icon-${icon.id}.png`}
+                              onClick={(e) => {
+                                e.preventDefault()
+                                fetch(icon.imageUrl)
+                                  .then(res => res.blob())
+                                  .then(blob => {
+                                    const url = window.URL.createObjectURL(blob)
+                                    const a = document.createElement('a')
+                                    a.href = url
+                                    a.download = `${icon.prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${icon.id}.png`
+                                    document.body.appendChild(a)
+                                    a.click()
+                                    window.URL.revokeObjectURL(url)
+                                    document.body.removeChild(a)
+                                  })
+                              }}
+                              className="w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"
+                              title="Download icon"
+                            >
+                              <Download className="w-4 h-4 text-gray-700" />
+                            </a>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 p-3">
+                            <p className="text-white text-xs font-medium truncate mb-1">{icon.prompt}</p>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span className="text-white/80 bg-white/20 px-2 py-0.5 rounded">{icon.style}</span>
+                              {icon.quality === 'hd' && <span className="text-yellow-300">⚡ HD</span>}
+                            </div>
+                            <p className="text-white/60 text-xs mt-1">{new Date(icon.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-400">
+                    <History size={48} className="mx-auto mb-4 opacity-50" />
+                    <p>No icons generated yet</p>
+                    <p className="text-sm mt-2">Start creating icons to see them here</p>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'history' && (
               <div>
                 <h2 className="text-2xl font-bold mb-4">Transaction History</h2>
-                <div className="text-center py-12 text-gray-400">
-                  <CreditCard size={48} className="mx-auto mb-4 opacity-50" />
-                  <p>No transactions yet</p>
-                </div>
+                {user.recentTransactions && user.recentTransactions.length > 0 ? (
+                  <div className="space-y-3">
+                    {user.recentTransactions.map((transaction) => (
+                      <div key={transaction.id} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between border border-gray-200">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            transaction.credits > 0 ? 'bg-green-100' : 'bg-orange-100'
+                          }`}>
+                            {transaction.credits > 0 ? (
+                              <span className="text-green-600 font-bold">+</span>
+                            ) : (
+                              <span className="text-orange-600 font-bold">-</span>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{transaction.description}</p>
+                            <p className="text-sm text-gray-500">{new Date(transaction.createdAt).toLocaleString()}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-bold ${transaction.credits > 0 ? 'text-green-600' : 'text-orange-600'}`}>
+                            {transaction.credits > 0 ? '+' : ''}{transaction.credits} 💎
+                          </p>
+                          {transaction.amountInCents && (
+                            <p className="text-sm text-gray-500">${(transaction.amountInCents / 100).toFixed(2)}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-400">
+                    <CreditCard size={48} className="mx-auto mb-4 opacity-50" />
+                    <p>No transactions yet</p>
+                  </div>
+                )}
               </div>
             )}
 

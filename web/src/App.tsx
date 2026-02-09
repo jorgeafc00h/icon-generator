@@ -80,9 +80,9 @@ function App() {
           <Header currentPage={currentPage} onNavigate={setCurrentPage} user={user} />
 
           <main className="flex-1 animate-slide-in">
-            {currentPage === 'generator' && <IconGenerator />}
+            {currentPage === 'generator' && <IconGenerator user={user} onUserUpdate={handleUserUpdate} onNavigate={(page) => setCurrentPage(page as Page)} />}
             {currentPage === 'resources' && <AppResources />}
-            {currentPage === 'dashboard' && <Dashboard />}
+            {currentPage === 'dashboard' && <Dashboard user={user} onNavigate={(page) => setCurrentPage(page as Page)} />}
             {currentPage === 'pricing' && <Pricing onNavigate={setCurrentPage} />}
             {currentPage === 'profile' && <Profile onUserUpdate={handleUserUpdate} />}
           </main>

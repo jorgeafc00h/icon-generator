@@ -442,29 +442,44 @@ export function Profile({ onUserUpdate }: ProfileProps) {
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                           <div className="absolute top-2 right-2">
-                            <a
-                              href={icon.imageUrl}
-                              download={`icon-${icon.id}.png`}
-                              onClick={(e) => {
+                            <button
+                              onClick={async (e) => {
                                 e.preventDefault()
-                                fetch(icon.imageUrl)
-                                  .then(res => res.blob())
-                                  .then(blob => {
-                                    const url = window.URL.createObjectURL(blob)
-                                    const a = document.createElement('a')
-                                    a.href = url
-                                    a.download = `${icon.prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${icon.id}.png`
-                                    document.body.appendChild(a)
-                                    a.click()
-                                    window.URL.revokeObjectURL(url)
-                                    document.body.removeChild(a)
+                                try {
+                                  const accessToken = localStorage.getItem('accessToken')
+                                  const apiEndpoint = import.meta.env.VITE_API_ENDPOINT
+
+                                  const response = await fetch(`${apiEndpoint}/images/download/${icon.id}`, {
+                                    headers: {
+                                      'Authorization': `Bearer ${accessToken}`
+                                    }
                                   })
+
+                                  if (!response.ok) {
+                                    toast.error('Failed to download icon')
+                                    return
+                                  }
+
+                                  const blob = await response.blob()
+                                  const url = window.URL.createObjectURL(blob)
+                                  const a = document.createElement('a')
+                                  a.href = url
+                                  a.download = `${icon.prompt.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${icon.id}.png`
+                                  document.body.appendChild(a)
+                                  a.click()
+                                  window.URL.revokeObjectURL(url)
+                                  document.body.removeChild(a)
+                                  toast.success('Icon downloaded!')
+                                } catch (error) {
+                                  console.error('Download error:', error)
+                                  toast.error('Failed to download icon')
+                                }
                               }}
                               className="w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110"
                               title="Download icon"
                             >
                               <Download className="w-4 h-4 text-gray-700" />
-                            </a>
+                            </button>
                           </div>
                           <div className="absolute bottom-0 left-0 right-0 p-3">
                             <p className="text-white text-xs font-medium truncate mb-1">{icon.prompt}</p>

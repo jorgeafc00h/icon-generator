@@ -143,4 +143,35 @@ public class StorageService : IStorageService
         var sasUri = blobClient.GenerateSasUri(sasBuilder);
         return sasUri.ToString();
     }
+
+    public async Task<string?> GetImageUrlAsync(
+        string userId,
+        string iconId,
+        CancellationToken cancellationToken = default)
+    {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+        var blobName = $"{userId}/{iconId}.png";
+        var blobClient = containerClient.GetBlobClient(blobName);
+
+        // Check if blob exists
+        var exists = await blobClient.ExistsAsync(cancellationToken);
+        if (!exists)
+        {
+            _logger.LogWarning("Image not found: {BlobName}", blobName);
+            return null;
+        }
+
+        // Generate SAS token for read access (valid for 1 hour)
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = _containerName,
+            BlobName = blobName,
+            Resource = "b",
+            ExpiresOn = DateTimeOffset.UtcNow.AddHours(1)
+        };
+        sasBuilder.SetPermissions(BlobSasPermissions.Read);
+
+        var sasUri = blobClient.GenerateSasUri(sasBuilder);
+        return sasUri.ToString();
+    }
 }

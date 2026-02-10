@@ -144,6 +144,7 @@ public class ImagesController : ControllerBase
                     scenePrompt = $"{request.CharacterDescription}. {scenePrompt}";
                 }
 
+                // Generate with DALL-E (temporary URL)
                 var image = await _aiService.GenerateStoryImageAsync(
                     scenePrompt,
                     request.Style,
@@ -152,11 +153,24 @@ public class ImagesController : ControllerBase
                     cancellationToken
                 );
 
+                _logger.LogInformation("Generated preview image {Index}/{Total}, uploading to storage...",
+                    i + 1, request.NumberOfImages);
+
+                // Upload to Azure Storage for permanent storage
+                var storedUrl = await _storageService.UploadImageAsync(
+                    image.ImageUrl,
+                    userId,
+                    image.Id,
+                    cancellationToken
+                );
+
+                // Update image URL to permanent storage URL
+                image.ImageUrl = storedUrl;
                 image.SceneDescription = scenePrompt;
                 generatedImages.Add(image);
 
-                _logger.LogInformation("Generated preview image {Index}/{Total}: {Url}",
-                    i + 1, request.NumberOfImages, image.ImageUrl);
+                _logger.LogInformation("Uploaded image {Index}/{Total} to storage: {Url}",
+                    i + 1, request.NumberOfImages, storedUrl);
             }
 
             // Deduct credits
@@ -331,5 +345,43 @@ public class ImagesController : ControllerBase
             ImageStyle.VintagePoster => "vintage poster",
             _ => "artistic"
         };
+    }
+
+    /// <summary>
+    /// Download an image - proxies the request to Azure Blob Storage with SAS token
+    /// </summary>
+    [HttpGet("download/{imageId}")]
+    public async Task<IActionResult> DownloadImage(string imageId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Get user ID from JWT claims
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { error = "Invalid authentication token" });
+            }
+
+            _logger.LogInformation("Download request for image {ImageId} by user {UserId}", imageId, userId);
+
+            // Get the blob URL with SAS token from storage service
+            var blobUrl = await _storageService.GetImageUrlAsync(userId, imageId, cancellationToken);
+
+            if (string.IsNullOrEmpty(blobUrl))
+            {
+                return NotFound(new { error = "Image not found" });
+            }
+
+            // Fetch the image from blob storage
+            var imageBytes = await _storageService.DownloadImageAsync(blobUrl, cancellationToken);
+
+            // Return the image with proper headers
+            return File(imageBytes, "image/png", $"icon-{imageId}.png");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error downloading image {ImageId}", imageId);
+            return StatusCode(500, new { error = "Failed to download image", details = ex.Message });
+        }
     }
 }

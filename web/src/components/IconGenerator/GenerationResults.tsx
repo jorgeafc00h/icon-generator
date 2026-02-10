@@ -10,14 +10,37 @@ interface GenerationResultsProps {
 export function GenerationResults({ icon, isGenerating }: GenerationResultsProps) {
   const [showEnhancedPrompt, setShowEnhancedPrompt] = useState(false)
 
-  const handleDownload = () => {
-    if (icon?.imageUrl) {
-      // Download image
-      const link = document.createElement('a')
-      link.href = icon.imageUrl
-      link.download = `icon-${icon.iconId}.png`
-      link.click()
-      toast.success('Downloaded!')
+  const handleDownload = async () => {
+    if (icon?.iconId) {
+      try {
+        const accessToken = localStorage.getItem('accessToken')
+        const apiEndpoint = import.meta.env.VITE_API_ENDPOINT
+
+        const response = await fetch(`${apiEndpoint}/images/download/${icon.iconId}`, {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`
+          }
+        })
+
+        if (!response.ok) {
+          toast.error('Failed to download icon')
+          return
+        }
+
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `icon-${icon.iconId}.png`
+        document.body.appendChild(link)
+        link.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(link)
+        toast.success('Downloaded!')
+      } catch (error) {
+        console.error('Download error:', error)
+        toast.error('Failed to download icon')
+      }
     }
   }
 

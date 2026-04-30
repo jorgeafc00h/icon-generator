@@ -6,6 +6,8 @@ using IconGenerator.Functions.Options;
 using IconGenerator.WebApi.Services;
 using IconGenerator.WebApi.Options;
 using IconGenerator.WebApi.Middleware;
+using IconGenerator.WebApi.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,7 +19,8 @@ var allowedOrigins = new[]
 {
     "http://localhost:5173",
     "http://localhost:3000",
-    "https://mango-bay-068c07f0f.6.azurestaticapps.net"
+    "https://mango-bay-068c07f0f.6.azurestaticapps.net",
+    "https://blue-bush-05743730f.7.azurestaticapps.net"
 };
 
 builder.Services.AddCors(options =>
@@ -104,9 +107,54 @@ builder.Services.AddSingleton<IAIService, AIService>();
 builder.Services.AddSingleton<IStorageService, StorageService>();
 builder.Services.AddSingleton<IImageService, ImageService>();
 builder.Services.AddSingleton<IAssetGeneratorService, AssetGeneratorService>();
-builder.Services.AddSingleton<IDatabaseService, CosmosDbService>();
-builder.Services.AddSingleton<IPaymentService, StripePaymentService>();
+builder.Services.AddScoped<IPaymentService, StripePaymentService>();
 builder.Services.AddSingleton<IJwtService, JwtService>();
+
+// Database service registration by provider type
+var databaseOptions = configuration.GetSection("Database").Get<DatabaseOptions>() ?? new DatabaseOptions();
+if (databaseOptions.Type.Equals("sqlite", StringComparison.OrdinalIgnoreCase))
+{
+    var sqliteConnectionString = string.IsNullOrWhiteSpace(databaseOptions.SqliteConnectionString)
+        ? "Data Source=./data/icon-generator.db"
+        : databaseOptions.SqliteConnectionString;
+
+    var sqlitePath = ExtractSqlitePath(sqliteConnectionString);
+    if (!string.IsNullOrWhiteSpace(sqlitePath))
+    {
+        var directory = Path.GetDirectoryName(sqlitePath);
+        if (!string.IsNullOrWhiteSpace(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+    }
+
+    builder.Services.AddDbContext<AppDbContext>(options =>
+        options.UseSqlite(sqliteConnectionString));
+    builder.Services.AddScoped<IDatabaseService, SqliteDbService>();
+}
+else
+{
+    builder.Services.AddSingleton<IDatabaseService, CosmosDbService>();
+}
+
+static string? ExtractSqlitePath(string connectionString)
+{
+    const string key = "Data Source=";
+    var index = connectionString.IndexOf(key, StringComparison.OrdinalIgnoreCase);
+    if (index < 0)
+    {
+        return null;
+    }
+
+    var value = connectionString[(index + key.Length)..];
+    var semicolonIndex = value.IndexOf(';');
+    if (semicolonIndex >= 0)
+    {
+        value = value[..semicolonIndex];
+    }
+
+    return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+}
 
 // HTTP Client
 builder.Services.AddHttpClient();

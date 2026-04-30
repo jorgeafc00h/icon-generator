@@ -1,5 +1,6 @@
 namespace IconGenerator.WebApi.Controllers;
 
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using IconGenerator.Functions.Models;
@@ -14,18 +15,21 @@ public class AuthController : ControllerBase
     private readonly IJwtService _jwtService;
     private readonly ILogger<AuthController> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly string _googleClientId;
     private const int WELCOME_CREDITS = 2; // Free credits for new users
 
     public AuthController(
         IDatabaseService databaseService,
         IJwtService jwtService,
         ILogger<AuthController> logger,
-        IHttpClientFactory httpClientFactory)
+        IHttpClientFactory httpClientFactory,
+        IConfiguration configuration)
     {
         _databaseService = databaseService;
         _jwtService = jwtService;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _googleClientId = configuration["Google:ClientId"] ?? string.Empty;
     }
 
     /// <summary>
@@ -187,20 +191,25 @@ public class AuthController : ControllerBase
     {
         try
         {
-            // In production, verify token with Google's public keys
-            // For now, we'll decode the JWT without verification (ONLY FOR DEVELOPMENT)
-            // TODO: Add proper Google token verification using Google.Apis.Auth
+            if (string.IsNullOrWhiteSpace(_googleClientId))
+            {
+                _logger.LogError("Google:ClientId is not configured.");
+                return null;
+            }
 
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(idToken);
+            var settings = new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new[] { _googleClientId }
+            };
+            var token = await GoogleJsonWebSignature.ValidateAsync(idToken, settings);
 
             return new GoogleTokenPayload
             {
-                Sub = token.Claims.FirstOrDefault(c => c.Type == "sub")?.Value ?? string.Empty,
-                Email = token.Claims.FirstOrDefault(c => c.Type == "email")?.Value ?? string.Empty,
-                Name = token.Claims.FirstOrDefault(c => c.Type == "name")?.Value,
-                Picture = token.Claims.FirstOrDefault(c => c.Type == "picture")?.Value,
-                EmailVerified = bool.Parse(token.Claims.FirstOrDefault(c => c.Type == "email_verified")?.Value ?? "false")
+                Sub = token.Subject,
+                Email = token.Email ?? string.Empty,
+                Name = token.Name,
+                Picture = token.Picture,
+                EmailVerified = token.EmailVerified
             };
         }
         catch (Exception ex)
